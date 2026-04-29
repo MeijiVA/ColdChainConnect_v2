@@ -6,10 +6,179 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Index from "./pages/Index";
+import { useState } from "react";
+import { Login } from "./pages/Login";
+import { Dashboard } from "./pages/Dashboard";
+import { PlaceholderPanel } from "./pages/PlaceholderPanel";
+import { Sidebar } from "./components/Sidebar";
+import { Topbar } from "./components/Topbar";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
+
+const AppContent = () => {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activePanel, setActivePanel] = useState("dashboard");
+
+  if (!isLoggedIn) {
+    return <Login onLogin={() => setIsLoggedIn(true)} />;
+  }
+
+  const renderPanel = () => {
+    switch (activePanel) {
+      case "dashboard":
+        return <Dashboard />;
+      case "inventory":
+        return (
+          <PlaceholderPanel
+            title="Inventory Management"
+            description="Track, manage, and monitor all frozen goods SKUs"
+            icon="📦"
+            panelId="inventory"
+          />
+        );
+      case "supplier":
+        return (
+          <PlaceholderPanel
+            title="Supplier Management"
+            description="Track all product suppliers and purchase orders"
+            icon="🏭"
+            panelId="supplier"
+          />
+        );
+      case "sales":
+        return (
+          <PlaceholderPanel
+            title="Sales Management"
+            description="Record and track all sales transactions"
+            icon="💳"
+            panelId="sales"
+          />
+        );
+      case "ar":
+        return (
+          <PlaceholderPanel
+            title="Accounts Receivable"
+            description="Monitor credit balances and aging reports"
+            icon="📋"
+            panelId="ar"
+          />
+        );
+      case "customers":
+        return (
+          <PlaceholderPanel
+            title="Customer Management"
+            description="All registered retail partners and sari-sari stores"
+            icon="🧑‍🤝‍🧑"
+            panelId="customers"
+          />
+        );
+      case "employees":
+        return (
+          <PlaceholderPanel
+            title="Employee Management"
+            description="Manage staff accounts and access levels"
+            icon="🪪"
+            panelId="employees"
+          />
+        );
+      case "payroll":
+        return (
+          <PlaceholderPanel
+            title="Payroll"
+            description="Employee salaries & agent commission management"
+            icon="💰"
+            panelId="payroll"
+          />
+        );
+      case "expenses":
+        return (
+          <PlaceholderPanel
+            title="Expenses & Finance"
+            description="Track operational costs and truck maintenance"
+            icon="🧾"
+            panelId="expenses"
+          />
+        );
+      case "qr":
+        return (
+          <PlaceholderPanel
+            title="QR Code Delivery Tracking"
+            description="Generate, scan, and monitor item-level delivery status"
+            icon="⬜"
+            panelId="qr"
+          />
+        );
+      case "forecasting":
+        return (
+          <PlaceholderPanel
+            title="AI Demand Forecasting"
+            description="S.M.A.R.T. inventory recommendations powered by historical data"
+            icon="📈"
+            panelId="forecasting"
+          />
+        );
+      case "reports":
+        return (
+          <PlaceholderPanel
+            title="Reports"
+            description="Generate and export business reports"
+            icon="📑"
+            panelId="reports"
+          />
+        );
+      case "notifications":
+        return (
+          <PlaceholderPanel
+            title="Notifications"
+            description="System alerts and activity feed"
+            icon="🔔"
+            panelId="notifications"
+          />
+        );
+      case "audit":
+        return (
+          <PlaceholderPanel
+            title="Audit Log"
+            description="Complete activity trail — Administrator access only"
+            icon="🕵️"
+            panelId="audit"
+          />
+        );
+      case "settings":
+        return (
+          <PlaceholderPanel
+            title="Settings"
+            description="Profile, security, and system configuration"
+            icon="⚙️"
+            panelId="settings"
+          />
+        );
+      default:
+        return <Dashboard />;
+    }
+  };
+
+  return (
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <Sidebar
+        activePanel={activePanel}
+        onPanelChange={setActivePanel}
+        onLogout={() => setIsLoggedIn(false)}
+      />
+
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-screen bg-off-white min-w-0">
+        {/* Topbar */}
+        <Topbar userName="Mizael Anton" />
+
+        {/* Panel Content */}
+        {renderPanel()}
+      </div>
+    </div>
+  );
+};
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -18,7 +187,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
+          <Route path="/" element={<AppContent />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

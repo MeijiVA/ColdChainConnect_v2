@@ -13,12 +13,35 @@ export default {
       },
     },
     extend: {
+      fontFamily: {
+        rajdhani: ["Rajdhani", "sans-serif"],
+        barlow: ["Barlow", "sans-serif"],
+        "barlow-cond": ["Barlow Condensed", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
+        navy: {
+          DEFAULT: "hsl(var(--navy))",
+          dark: "hsl(var(--navy-dark))",
+          mid: "hsl(var(--navy-mid))",
+          light: "hsl(var(--navy-light))",
+          card: "hsl(var(--navy-card))",
+        },
+        accent: {
+          DEFAULT: "hsl(var(--accent))",
+          "2": "hsl(var(--accent2))",
+        },
+        gold: "hsl(var(--gold))",
+        green: "hsl(var(--green))",
+        red: "hsl(var(--red))",
+        yellow: "hsl(var(--yellow))",
+        white: "hsl(var(--white))",
+        "off-white": "hsl(var(--off-white))",
+        muted: "hsl(var(--muted))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
@@ -31,14 +54,6 @@ export default {
           DEFAULT: "hsl(var(--destructive))",
           foreground: "hsl(var(--destructive-foreground))",
         },
-        muted: {
-          DEFAULT: "hsl(var(--muted))",
-          foreground: "hsl(var(--muted-foreground))",
-        },
-        accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
-        },
         popover: {
           DEFAULT: "hsl(var(--popover))",
           foreground: "hsl(var(--popover-foreground))",
@@ -46,16 +61,6 @@ export default {
         card: {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
-        },
-        sidebar: {
-          DEFAULT: "hsl(var(--sidebar-background))",
-          foreground: "hsl(var(--sidebar-foreground))",
-          primary: "hsl(var(--sidebar-primary))",
-          "primary-foreground": "hsl(var(--sidebar-primary-foreground))",
-          accent: "hsl(var(--sidebar-accent))",
-          "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
-          border: "hsl(var(--sidebar-border))",
-          ring: "hsl(var(--sidebar-ring))",
         },
       },
       borderRadius: {
