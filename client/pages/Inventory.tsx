@@ -757,7 +757,7 @@ function Modal({
   );
 }
 
-// QR Code Modal Component - REQ-INV-015
+// QR Code Modal Component - REQ-INV-015 with Print Functionality
 function QRModal({
   product,
   onClose,
@@ -765,6 +765,66 @@ function QRModal({
   product: InventoryProduct;
   onClose: () => void;
 }) {
+  const qrCodeId = `QR-${product.sku}-${product.id}`;
+
+  const handlePrint = () => {
+    const printWindow = window.open("", "", "width=300,height=400");
+    if (printWindow) {
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>QR Code - ${product.sku}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 10px; text-align: center; }
+            .qr-container { border: 2px solid #000; padding: 20px; margin-bottom: 20px; }
+            svg { max-width: 200px; }
+            .info { font-size: 12px; margin-top: 10px; }
+            .label { font-weight: bold; font-size: 14px; margin-bottom: 10px; }
+            @media print { body { margin: 0; padding: 5px; } }
+          </style>
+        </head>
+        <body>
+          <div class="qr-container">
+            <div class="label">${product.sku}</div>
+            <svg width="200" height="200" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect width="80" height="80" fill="white" />
+              <rect x="5" y="5" width="28" height="28" rx="3" fill="#060761" />
+              <rect x="9" y="9" width="20" height="20" rx="2" fill="white" />
+              <rect x="13" y="13" width="12" height="12" rx="1" fill="#060761" />
+              <rect x="47" y="5" width="28" height="28" rx="3" fill="#060761" />
+              <rect x="51" y="9" width="20" height="20" rx="2" fill="white" />
+              <rect x="55" y="13" width="12" height="12" rx="1" fill="#060761" />
+              <rect x="5" y="47" width="28" height="28" rx="3" fill="#060761" />
+              <rect x="9" y="51" width="20" height="20" rx="2" fill="white" />
+              <rect x="13" y="55" width="12" height="12" rx="1" fill="#060761" />
+              <rect x="41" y="41" width="6" height="6" fill="#060761" />
+              <rect x="49" y="41" width="6" height="6" fill="#060761" />
+              <rect x="57" y="41" width="6" height="6" fill="#060761" />
+              <rect x="65" y="41" width="6" height="6" fill="#060761" />
+              <rect x="41" y="49" width="6" height="6" fill="#060761" />
+              <rect x="57" y="49" width="6" height="6" fill="#060761" />
+              <rect x="41" y="57" width="6" height="6" fill="#060761" />
+              <rect x="49" y="57" width="6" height="6" fill="#060761" />
+              <rect x="65" y="57" width="6" height="6" fill="#060761" />
+              <rect x="41" y="65" width="6" height="6" fill="#060761" />
+              <rect x="57" y="65" width="6" height="6" fill="#060761" />
+              <rect x="65" y="65" width="6" height="6" fill="#060761" />
+            </svg>
+            <div class="info">
+              <div><strong>${product.description}</strong></div>
+              <div>QR ID: ${qrCodeId}</div>
+              <div>Expiry: ${product.expiryDate}</div>
+            </div>
+          </div>
+          <script>window.print(); window.close();</script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl border border-border max-w-sm w-full p-6">
@@ -780,7 +840,7 @@ function QRModal({
           </button>
         </div>
 
-        <div className="bg-off-white p-6 rounded-lg flex flex-col items-center gap-4 mb-6">
+        <div className="bg-off-white p-6 rounded-lg flex flex-col items-center gap-4 mb-6 border-2 border-navy/20">
           {/* QR Code Placeholder SVG */}
           <svg
             width="200"
@@ -816,39 +876,54 @@ function QRModal({
             <rect x="57" y="65" width="6" height="6" fill="#060761" />
             <rect x="65" y="65" width="6" height="6" fill="#060761" />
           </svg>
+          <div className="text-xs text-muted font-mono">{qrCodeId}</div>
         </div>
 
-        <div className="space-y-2 mb-6">
+        <div className="space-y-2 mb-6 bg-navy/5 p-4 rounded-lg">
           <div className="flex justify-between">
-            <span className="text-xs text-muted">SKU:</span>
+            <span className="text-xs text-muted font-semibold">SKU:</span>
             <span className="text-sm font-semibold text-navy">{product.sku}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-muted">Description:</span>
+            <span className="text-xs text-muted font-semibold">Description:</span>
             <span className="text-sm font-semibold text-navy max-w-xs text-right">
               {product.description}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-muted">Quantity:</span>
+            <span className="text-xs text-muted font-semibold">Quantity:</span>
             <span className="text-sm font-semibold text-navy">{product.quantity}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-muted">Expiry:</span>
+            <span className="text-xs text-muted font-semibold">Expiry:</span>
             <span className="text-sm font-semibold text-navy">{product.expiryDate}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-muted font-semibold">Unit Price:</span>
+            <span className="text-sm font-semibold text-navy">
+              ₱{product.unitPrice.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
+            </span>
           </div>
         </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={onClose}
-            className="flex-1 px-4 py-2 border border-border rounded-lg font-semibold text-sm hover:bg-off-white"
-          >
-            Close
-          </button>
-          <button className="flex-1 px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90">
-            🖨 Print
-          </button>
+        <div className="space-y-2">
+          <p className="text-xs text-muted text-center">
+            ⚠️ Print and attach this QR code to the shipment for tracking
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={onClose}
+              className="flex-1 px-4 py-2 border border-border rounded-lg font-semibold text-sm hover:bg-off-white"
+            >
+              Close
+            </button>
+            <button
+              onClick={handlePrint}
+              className="flex-1 px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 flex items-center justify-center gap-2"
+            >
+              🖨 Print Label
+            </button>
+          </div>
         </div>
       </div>
     </div>
