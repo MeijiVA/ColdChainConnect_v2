@@ -477,24 +477,6 @@ export function Dashboard() {
               ))}
             </div>
           </div>
-
-          {/* Quick Links - REQ-DASH-006: Navigation */}
-          <div className="bg-white rounded-2xl border border-border p-6">
-            <h2 className="font-rajdhani text-lg font-bold text-navy mb-4 letter-spacing-tight">
-              Quick Actions
-            </h2>
-            <div className="space-y-2 text-xs">
-              <button className="w-full px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
-                📋 Generate Report
-              </button>
-              <button className="w-full px-4 py-2 bg-green text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
-                ➕ New Transaction
-              </button>
-              <button className="w-full px-4 py-2 bg-gold text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">
-                📦 Manage Inventory
-              </button>
-            </div>
-          </div>
         </div>
       </div>
 
