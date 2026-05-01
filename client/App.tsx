@@ -11,6 +11,9 @@ import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Inventory } from "./pages/Inventory";
 import { TrucksInTransit } from "./pages/TrucksInTransit";
+import { Sales } from "./pages/Sales";
+import { Payroll } from "./pages/Payroll";
+import { Customer } from "./pages/Customer";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -34,41 +37,9 @@ const AppContent = () => {
       case "inventory":
         return <Inventory />;
       case "sales":
-        return (
-          <PlaceholderPanel
-            title="Sales Management"
-            description="Record and track all sales transactions"
-            icon="💳"
-            panelId="sales"
-          />
-        );
+        return <Sales />;
       case "customers":
-        return (
-          <PlaceholderPanel
-            title="Customer Management"
-            description="All registered retail partners and sari-sari stores"
-            icon="🧑‍🤝‍🧑"
-            panelId="customers"
-          />
-       );
-      case "ar":
-        return (
-          <PlaceholderPanel
-            title="Accounts Receivable"
-            description="Monitor credit balances and aging reports"
-            icon="📋"
-            panelId="ar"
-          />
-        );
-      case "customers":
-        return (
-          <PlaceholderPanel
-            title="Customer Management"
-            description="All registered retail partners and sari-sari stores"
-            icon="🧑‍🤝‍🧑"
-            panelId="customers"
-          />
-        );
+        return <Customer />;
       case "employees":
         return (
           <PlaceholderPanel
@@ -79,14 +50,7 @@ const AppContent = () => {
           />
         );
       case "payroll":
-        return (
-          <PlaceholderPanel
-            title="Payroll"
-            description="Employee salaries & agent commission management"
-            icon="💰"
-            panelId="payroll"
-          />
-        );
+        return <Payroll />;
       case "expenses":
         return (
           <PlaceholderPanel

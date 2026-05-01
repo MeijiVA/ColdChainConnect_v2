@@ -19,8 +19,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
     { id: "dashboard", icon: "⬛", label: "Dashboard" },
     { id: "inventory", icon: "📦", label: "Inventory Management" },
     { id: "sales", icon: "💳", label: "Sales Management" },
-    { id: "ar", icon: "📋", label: "Accounts Receivable" },
-    { id: "trucks", icon: "🚚", label: "Trucks in Transit" }, // Add this line
+    { id: "trucks", icon: "🚚", label: "Trucks in Transit" },
     { id: "customers", icon: "🧑‍🤝‍🧑", label: "Customer Management" },
     { id: "employees", icon: "🪪", label: "Employee Management" },
   ];
@@ -28,7 +27,6 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   const additionalItems = [
     { id: "payroll", icon: "💰", label: "Payroll" },
     { id: "expenses", icon: "🧾", label: "Expenses & Finance" },
-    { id: "forecasting", icon: "📈", label: "AI Forecasting" },
     { id: "reports", icon: "📑", label: "Reports" },
   ];
 
