@@ -120,15 +120,22 @@ export function TrucksInTransit() {
   const [scannedQR, setScannedQR] = useState<string>("");
   const [cameraActive, setCameraActive] = useState(false);
 
-  // Mark item as missing and update inventory
-  const markItemAsMissing = (truckId: string, itemId: string) => {
+  // Update item status and handle inventory when marking as missing
+  const updateItemStatus = (
+    truckId: string,
+    itemId: string,
+    newStatus: "in_storage" | "being_delivered" | "arrived" | "missing"
+  ) => {
     const updatedTrucks = trucks.map((truck) => {
       if (truck.id === truckId) {
         const updatedItems = truck.items.map((item) => {
           if (item.id === itemId) {
-            // Update inventory - subtract from stock
-            updateInventoryForMissingItem(item.sku, item.quantity);
-            return { ...item, status: "missing" };
+            const oldStatus = item.status;
+            // If changing to missing, update inventory
+            if (newStatus === "missing" && oldStatus !== "missing") {
+              updateInventoryForMissingItem(item.sku, item.quantity);
+            }
+            return { ...item, status: newStatus };
           }
           return item;
         });
@@ -386,7 +393,7 @@ export function TrucksInTransit() {
                       Status
                     </th>
                     <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                      Actions
+                      Update Status
                     </th>
                   </tr>
                 </thead>
@@ -409,20 +416,22 @@ export function TrucksInTransit() {
                         <ItemStatusBadge status={item.status} />
                       </td>
                       <td className="px-3 py-3">
-                        {item.status !== "missing" && (
-                          <button
-                            onClick={() => markItemAsMissing(selectedTruck.id, item.id)}
-                            className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
-                            title="Mark as Missing"
-                          >
-                            Missing
-                          </button>
-                        )}
-                        {item.status === "missing" && (
-                          <span className="px-2 py-1 bg-red/30 text-red rounded text-xs font-semibold">
-                            ✓ Marked Missing
-                          </span>
-                        )}
+                        <select
+                          value={item.status}
+                          onChange={(e) =>
+                            updateItemStatus(
+                              selectedTruck.id,
+                              item.id,
+                              e.target.value as "in_storage" | "being_delivered" | "arrived" | "missing"
+                            )
+                          }
+                          className="px-2 py-1 border border-border rounded text-xs font-semibold focus:outline-none focus:border-accent-2 bg-white cursor-pointer"
+                        >
+                          <option value="in_storage">In Storage</option>
+                          <option value="being_delivered">In Transit</option>
+                          <option value="arrived">Delivered</option>
+                          <option value="missing">Missing</option>
+                        </select>
                       </td>
                     </tr>
                   ))}
