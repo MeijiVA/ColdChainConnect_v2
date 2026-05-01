@@ -13,6 +13,7 @@ import { Inventory } from "./pages/Inventory";
 import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sales } from "./pages/Sales";
 import { Payroll } from "./pages/Payroll";
+import { Customer } from "./pages/Customer";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -38,14 +39,7 @@ const AppContent = () => {
       case "sales":
         return <Sales />;
       case "customers":
-        return (
-          <PlaceholderPanel
-            title="Customer Management"
-            description="All registered retail partners and sari-sari stores"
-            icon="🧑‍🤝‍🧑"
-            panelId="customers"
-          />
-        );
+        return <Customer />;
       case "employees":
         return (
           <PlaceholderPanel
