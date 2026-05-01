@@ -14,9 +14,7 @@ import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
-import { TrucksInTransit } from "./pages/TrucksInTransit"; // Matches plural filename
 import NotFound from "./pages/NotFound";
-import { Switch } from "./components/ui/switch";
 
 
 const queryClient = new QueryClient();
@@ -62,8 +60,6 @@ const AppContent = () => {
             panelId="ar"
           />
         );
-      case "trucks":                    // Add this case
-      return <TrucksInTransit />;     
       case "customers":
         return (
           <PlaceholderPanel
@@ -100,15 +96,8 @@ const AppContent = () => {
             panelId="expenses"
           />
         );
-      case "forecasting":
-        return (
-          <PlaceholderPanel
-            title="AI Demand Forecasting"
-            description="S.M.A.R.T. inventory recommendations powered by historical data"
-            icon="📈"
-            panelId="forecasting"
-          />
-        );
+      case "trucks":
+        return <TrucksInTransit />;
       case "reports":
         return (
           <PlaceholderPanel
