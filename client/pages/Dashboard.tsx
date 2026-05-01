@@ -54,6 +54,27 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* Quick Actions - At the Top */}
+      <div className="bg-white rounded-2xl border border-border p-6">
+        <h2 className="font-rajdhani text-lg font-bold text-navy mb-4 letter-spacing-tight">
+          Quick Actions
+        </h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <button className="px-4 py-3 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+            📋 Generate Report
+          </button>
+          <button className="px-4 py-3 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+            ➕ New Transaction
+          </button>
+          <button className="px-4 py-3 bg-gold text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+            📦 Manage Inventory
+          </button>
+          <button className="px-4 py-3 bg-navy text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+            🚚 Track Trucks
+          </button>
+        </div>
+      </div>
+
       {/* REQ-DASH-001: Central Display - KPI Stat Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatCard

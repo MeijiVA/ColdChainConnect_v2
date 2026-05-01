@@ -1,0 +1,700 @@
+import { useState } from "react";
+
+interface SalesTransaction {
+  id: string;
+  salesId: string;
+  customerId: string;
+  customerName: string;
+  date: string;
+  items: SalesLineItem[];
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  status: "paid" | "unpaid";
+  paymentMethod?: string;
+  notes?: string;
+}
+
+interface SalesLineItem {
+  sku: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
+export function Sales() {
+  const [timePeriod, setTimePeriod] = useState<"daily" | "weekly" | "monthly" | "annually">("monthly");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTransaction, setSelectedTransaction] = useState<SalesTransaction | null>(null);
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+
+  const [transactions, setTransactions] = useState<SalesTransaction[]>([
+    {
+      id: "1",
+      salesId: "SLS-001",
+      customerId: "CUST-003",
+      customerName: "KM5 Convenience Store",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7700165",
+          description: "FF Bossing Hatdogs KingSize",
+          quantity: 24,
+          unitPrice: 156.19,
+          amount: 3748.56,
+        },
+      ],
+      quantity: 24,
+      unitPrice: 156.19,
+      total: 3748.56,
+      status: "paid",
+      paymentMethod: "Cash",
+    },
+    {
+      id: "2",
+      salesId: "SLS-002",
+      customerId: "CUST-0010",
+      customerName: "Ate Rosa Sari-Sari",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7700169",
+          description: "FF Bossing Cheesedog KingSize",
+          quantity: 8,
+          unitPrice: 156.19,
+          amount: 1249.52,
+        },
+      ],
+      quantity: 8,
+      unitPrice: 156.19,
+      total: 1249.52,
+      status: "unpaid",
+    },
+    {
+      id: "3",
+      salesId: "SLS-003",
+      customerId: "CUST-005",
+      customerName: "Aling Nena Store",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7702041",
+          description: "FF Bossing Chicken Hd Regular",
+          quantity: 15,
+          unitPrice: 35.34,
+          amount: 530.10,
+        },
+      ],
+      quantity: 15,
+      unitPrice: 35.34,
+      total: 530.10,
+      status: "paid",
+      paymentMethod: "30 Days Credit",
+    },
+    {
+      id: "4",
+      salesId: "SLS-004",
+      customerId: "CUST-004",
+      customerName: "Mang Ben Palengke",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7700160",
+          description: "FF Bossing Chicken Franks King",
+          quantity: 10,
+          unitPrice: 156.19,
+          amount: 1561.90,
+        },
+      ],
+      quantity: 10,
+      unitPrice: 156.19,
+      total: 1561.90,
+      status: "paid",
+      paymentMethod: "Cash",
+    },
+    {
+      id: "5",
+      salesId: "SLS-005",
+      customerId: "CUST-001",
+      customerName: "Aling Maria's Store",
+      date: "2025-12-05",
+      items: [
+        {
+          sku: "7702031",
+          description: "FF Bossing Hungarian Sausage w/Cheese",
+          quantity: 23,
+          unitPrice: 148.57,
+          amount: 3417.11,
+        },
+      ],
+      quantity: 23,
+      unitPrice: 148.57,
+      total: 3417.11,
+      status: "paid",
+      paymentMethod: "30 Days Credit",
+    },
+    {
+      id: "6",
+      salesId: "SLS-006",
+      customerId: "CUST-001",
+      customerName: "Aling Maria's Store",
+      date: "2025-12-05",
+      items: [
+        {
+          sku: "7700169",
+          description: "FF Bossing Cheesedog KingSize",
+          quantity: 8,
+          unitPrice: 156.19,
+          amount: 1249.52,
+        },
+      ],
+      quantity: 8,
+      unitPrice: 156.19,
+      total: 1249.52,
+      status: "paid",
+      paymentMethod: "Cash",
+    },
+    {
+      id: "7",
+      salesId: "SLS-007",
+      customerId: "CUST-001",
+      customerName: "Aling Maria's Store",
+      date: "2025-12-05",
+      items: [
+        {
+          sku: "7700160",
+          description: "FF Bossing Chicken Franks King",
+          quantity: 19,
+          unitPrice: 163.81,
+          amount: 3112.39,
+        },
+      ],
+      quantity: 19,
+      unitPrice: 163.81,
+      total: 3112.39,
+      status: "paid",
+      paymentMethod: "GCash",
+    },
+    {
+      id: "8",
+      salesId: "SLS-008",
+      customerId: "CUST-001",
+      customerName: "Aling Maria's Store",
+      date: "2025-12-05",
+      items: [
+        {
+          sku: "7702041",
+          description: "FF Bossing Chicken Hd Regular",
+          quantity: 1,
+          unitPrice: 35.34,
+          amount: 35.34,
+        },
+      ],
+      quantity: 1,
+      unitPrice: 35.34,
+      total: 35.34,
+      status: "paid",
+      paymentMethod: "Cash",
+    },
+    {
+      id: "9",
+      salesId: "SLS-009",
+      customerId: "CUST-001",
+      customerName: "Aling Maria's Store",
+      date: "2025-12-05",
+      items: [
+        {
+          sku: "7700181",
+          description: "FF Bossing Cheesedog Footlong",
+          quantity: 1,
+          unitPrice: 153.33,
+          amount: 153.33,
+        },
+      ],
+      quantity: 1,
+      unitPrice: 153.33,
+      total: 153.33,
+      status: "paid",
+      paymentMethod: "Bank Transfer",
+    },
+  ]);
+
+  const itemsPerPage = 10;
+
+  // Filter and search
+  const filteredTransactions = transactions.filter((tx) => {
+    const matchesSearch =
+      tx.salesId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.customerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      tx.customerName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = filterStatus === "all" || tx.status === filterStatus;
+    return matchesSearch && matchesStatus;
+  });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedTransactions = filteredTransactions.slice(
+    startIndex,
+    startIndex + itemsPerPage
+  );
+
+  // Calculate totals
+  const totalRevenue = transactions.reduce((sum, tx) => sum + tx.total, 0);
+  const paidRevenue = transactions
+    .filter((tx) => tx.status === "paid")
+    .reduce((sum, tx) => sum + tx.total, 0);
+  const unpaidRevenue = transactions
+    .filter((tx) => tx.status === "unpaid")
+    .reduce((sum, tx) => sum + tx.total, 0);
+
+  const handlePrintReceipt = (transaction: SalesTransaction) => {
+    const printWindow = window.open("", "", "width=400,height=600");
+    if (printWindow) {
+      const itemsHtml = transaction.items
+        .map(
+          (item) => `
+        <tr>
+          <td class="qty">${item.quantity}</td>
+          <td class="desc">
+            <strong>${item.sku}</strong><br/>
+            ${item.description}
+          </td>
+          <td class="price">₱ ${item.unitPrice.toFixed(2)}</td>
+          <td class="amount">₱ ${item.amount.toFixed(2)}</td>
+        </tr>
+      `
+        )
+        .join("");
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+          <title>Receipt - ${transaction.salesId}</title>
+          <style>
+            body { font-family: Arial, sans-serif; margin: 0; padding: 10px; font-size: 11px; line-height: 1.4; }
+            .header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 8px; }
+            .company-name { font-size: 14px; font-weight: bold; }
+            .company-desc { font-size: 9px; color: #666; }
+            .company-addr { font-size: 9px; color: #666; }
+            .delivery-receipt { text-align: center; font-weight: bold; font-size: 12px; margin: 5px 0; color: #d00; }
+            .receipt-no { text-align: right; margin-bottom: 5px; }
+            .info-row { display: flex; justify-content: space-between; margin: 3px 0; }
+            .info-label { font-weight: bold; }
+            table { width: 100%; margin: 8px 0; border-collapse: collapse; }
+            th { border-top: 1px solid #000; border-bottom: 1px solid #000; padding: 3px; text-align: left; font-weight: bold; font-size: 10px; }
+            td { padding: 3px; }
+            .qty { text-align: center; width: 30px; }
+            .desc { flex: 1; }
+            .price { text-align: right; width: 60px; }
+            .amount { text-align: right; width: 80px; border-left: 1px solid #ccc; padding-left: 5px; }
+            .totals { border-top: 1px solid #000; border-bottom: 2px solid #000; margin: 5px 0; padding-top: 5px; }
+            .total-row { display: flex; justify-content: space-between; margin: 3px 0; }
+            .total-label { font-weight: bold; }
+            .total-amount { font-weight: bold; font-size: 13px; text-align: right; }
+            .footer { text-align: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid #000; font-size: 9px; }
+            .footer-line { margin: 2px 0; }
+            @media print { body { margin: 0; padding: 0; } }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <div class="company-name">ACDP CONSUMER GOODS TRADING</div>
+            <div class="company-desc">Service & Supply, Jalan City of San Fernando (Capas), Pampanga Philippines</div>
+            <div class="company-addr"></div>
+            <div class="delivery-receipt">DELIVERY RECEIPT</div>
+          </div>
+
+          <div class="receipt-no">No. ${transaction.salesId.replace("SLS-", "")}</div>
+
+          <div class="info-row">
+            <div>
+              <div class="info-label">SOLD TO:</div>
+              <div>${transaction.customerName}</div>
+            </div>
+          </div>
+
+          <div class="info-row">
+            <div>
+              <div class="info-label">DATE:</div>
+              <div>${new Date(transaction.date).toLocaleDateString()}</div>
+            </div>
+            <div>
+              <div class="info-label">TERMS:</div>
+              <div>${transaction.paymentMethod || "Cash"}</div>
+            </div>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>QTY</th>
+                <th>UNIT DESCRIPTION</th>
+                <th>UNIT PRICE</th>
+                <th>AMOUNT</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${itemsHtml}
+            </tbody>
+          </table>
+
+          <div class="totals">
+            <div class="total-row">
+              <span class="total-label">GROSS</span>
+              <span class="total-amount">₱ ${transaction.total.toFixed(2)}</span>
+            </div>
+            <div class="total-row">
+              <span class="total-label">LESS DISCOUNT</span>
+              <span class="total-amount">₱ 0.00</span>
+            </div>
+            <div class="total-row">
+              <span class="total-label">TOTAL AMOUNT DUE</span>
+              <span class="total-amount">₱ ${transaction.total.toFixed(2)}</span>
+            </div>
+          </div>
+
+          <div class="footer">
+            <div class="footer-line">RECEIVED BY: _________________________ PREPARED BY: Antonio C. Dela Pena</div>
+          </div>
+
+          <script>window.print(); window.close();</script>
+        </body>
+        </html>
+      `);
+      printWindow.document.close();
+    }
+  };
+
+  return (
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto space-y-6">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h1 className="font-rajdhani text-3xl font-bold text-navy letter-spacing-tight">
+            Sales Tracking
+          </h1>
+          <p className="text-xs text-muted mt-1">
+            Record, track, and monitor all sales transactions with AI-powered forecasting
+          </p>
+        </div>
+      </div>
+
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <SummaryCard
+          label="Total Sales Revenue"
+          value={`₱${totalRevenue.toLocaleString("en-PH", { maximumFractionDigits: 2 })}`}
+          subtitle="All transactions"
+          icon="💰"
+          color="green"
+        />
+        <SummaryCard
+          label="Paid"
+          value={`₱${paidRevenue.toLocaleString("en-PH", { maximumFractionDigits: 2 })}`}
+          subtitle={`${transactions.filter((t) => t.status === "paid").length} transactions`}
+          icon="✅"
+          color="green"
+        />
+        <SummaryCard
+          label="Unpaid"
+          value={`₱${unpaidRevenue.toLocaleString("en-PH", { maximumFractionDigits: 2 })}`}
+          subtitle={`${transactions.filter((t) => t.status === "unpaid").length} transactions`}
+          icon="⏳"
+          color="red"
+        />
+      </div>
+
+      {/* Time Period Selector and Actions */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex gap-2">
+          {(["daily", "weekly", "monthly", "annually"] as const).map((period) => (
+            <button
+              key={period}
+              onClick={() => setTimePeriod(period)}
+              className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
+                timePeriod === period
+                  ? "bg-accent-2 text-white"
+                  : "bg-white border border-border text-muted hover:bg-off-white"
+              }`}
+            >
+              {period.charAt(0).toUpperCase() + period.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className="flex gap-2 ml-auto">
+          <button className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white">
+            ⬇ Import
+          </button>
+          <button className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white">
+            ⬆ Export
+          </button>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
+          >
+            ＋ Add Item
+          </button>
+        </div>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="flex flex-col md:flex-row gap-3">
+        <div className="flex-1 flex items-center bg-navy-mid border border-border rounded-lg px-3 gap-2">
+          <span className="text-muted">🔍</span>
+          <input
+            type="text"
+            placeholder="Search by Sales ID, Customer ID, date…"
+            value={searchQuery}
+            onChange={(e) => {
+              setSearchQuery(e.target.value);
+              setCurrentPage(1);
+            }}
+            className="flex-1 bg-transparent border-none text-white placeholder-muted py-2 outline-none text-sm"
+          />
+        </div>
+        <select
+          value={filterStatus}
+          onChange={(e) => {
+            setFilterStatus(e.target.value as "all" | "paid" | "unpaid");
+            setCurrentPage(1);
+          }}
+          className="px-3 py-2 bg-navy-mid border border-border text-white rounded-lg text-sm outline-none cursor-pointer"
+        >
+          <option value="all">All Status</option>
+          <option value="paid">Paid</option>
+          <option value="unpaid">Unpaid</option>
+        </select>
+      </div>
+
+      {/* Transactions Table */}
+      <div className="bg-white rounded-2xl border border-border overflow-hidden">
+        <div className="overflow-x-auto text-xs md:text-sm">
+          <table className="w-full">
+            <thead>
+              <tr>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  <input type="checkbox" className="rounded" />
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Sales ID
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Customer ID
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden sm:table-cell">
+                  Sales Date
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Product ID
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Quantity
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Unit Price
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Total
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Status
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Action
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedTransactions.map((transaction) => (
+                <tr
+                  key={transaction.id}
+                  className="border-b border-border hover:bg-off-white/50 transition-colors"
+                >
+                  <td className="px-3 py-3 whitespace-nowrap">
+                    <input type="checkbox" className="rounded" />
+                  </td>
+                  <td className="px-3 py-3 text-navy font-semibold">{transaction.salesId}</td>
+                  <td className="px-3 py-3 text-navy">{transaction.customerId}</td>
+                  <td className="px-3 py-3 text-navy hidden sm:table-cell">
+                    {new Date(transaction.date).toLocaleDateString()}
+                  </td>
+                  <td className="px-3 py-3 text-navy font-semibold">
+                    {transaction.items[0]?.sku}
+                  </td>
+                  <td className="px-3 py-3 text-navy">{transaction.quantity}</td>
+                  <td className="px-3 py-3 text-navy">
+                    ₱{transaction.unitPrice.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-3 text-navy font-semibold">
+                    ₱{transaction.total.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-3 whitespace-nowrap">
+                    <span
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold badge-${transaction.status === "paid" ? "green" : "red"}`}
+                    >
+                      {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 whitespace-nowrap">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handlePrintReceipt(transaction)}
+                        className="px-2 py-1 bg-white border border-border text-navy rounded text-xs font-semibold hover:bg-off-white"
+                        title="Print Receipt"
+                      >
+                        🖨
+                      </button>
+                      <button
+                        onClick={() => setSelectedTransaction(transaction)}
+                        className="px-2 py-1 bg-accent-2 text-white rounded text-xs font-semibold hover:opacity-90"
+                        title="View Details"
+                      >
+                        ℹ
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+          <div className="text-xs text-muted">
+            Page {currentPage} of {totalPages} · {filteredTransactions.length} items
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border border-border rounded text-xs font-semibold disabled:opacity-50"
+            >
+              ← Prev
+            </button>
+            <button
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border border-border rounded text-xs font-semibold disabled:opacity-50"
+            >
+              Next →
+            </button>
+            <span className="px-3 py-1 text-xs text-muted">Page: 1 of 4</span>
+          </div>
+        </div>
+      </div>
+
+      {/* AI Forecasting Section */}
+      <div className="bg-white rounded-2xl border border-border p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h2 className="font-rajdhani text-xl font-bold text-navy">
+              📈 AI Demand Forecasting
+            </h2>
+            <p className="text-xs text-muted mt-1">
+              S.M.A.R.T. recommendations based on historical sales data
+            </p>
+          </div>
+          <button className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90">
+            🔄 Regenerate Forecast
+          </button>
+        </div>
+
+        <div className="bg-off-white rounded-lg p-4 mb-4">
+          <p className="text-xs text-muted mb-4">
+            🤖 The AI has analyzed your sales data and recommends the following stock orders:
+          </p>
+
+          <div className="space-y-2">
+            {[
+              {
+                sku: "7702031",
+                name: "FF Bossing Hungarian Sausage w/Cheese",
+                current: 14,
+                recommended: 200,
+                confidence: "92%",
+              },
+              {
+                sku: "7700169",
+                name: "FF Bossing Cheesedog KingSize",
+                current: 38,
+                recommended: 150,
+                confidence: "88%",
+              },
+              {
+                sku: "7700165",
+                name: "FF Bossing Hatdogs KingSize",
+                current: 56,
+                recommended: 80,
+                confidence: "74%",
+              },
+              {
+                sku: "7702041",
+                name: "FF Bossing Chicken Hd Regular",
+                current: 73,
+                recommended: 60,
+                confidence: "70%",
+              },
+            ].map((rec) => (
+              <div
+                key={rec.sku}
+                className="flex items-center justify-between p-3 bg-white border border-border rounded-lg"
+              >
+                <div>
+                  <p className="text-sm font-semibold text-navy">{rec.name}</p>
+                  <p className="text-xs text-muted">
+                    Current: {rec.current} units → Recommend: +{rec.recommended} units
+                  </p>
+                </div>
+                <div className="flex gap-2 items-center">
+                  <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold badge-green">
+                    {rec.confidence} confidence
+                  </span>
+                  <button className="px-3 py-1 bg-green text-white rounded text-xs font-semibold hover:opacity-90">
+                    Approve
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  subtitle,
+  icon,
+  color,
+}: {
+  label: string;
+  value: string;
+  subtitle: string;
+  icon: string;
+  color: string;
+}) {
+  return (
+    <div className={`bg-white border border-border rounded-2xl p-5 flex flex-col gap-2`}>
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <div className="text-xs text-muted font-semibold letter-spacing-tight uppercase">
+            {label}
+          </div>
+          <div className={`font-rajdhani text-2xl font-bold mt-2 text-${color}`}>
+            {value}
+          </div>
+        </div>
+        <span className="text-3xl">{icon}</span>
+      </div>
+      <div className="text-xs text-muted mt-1">{subtitle}</div>
+    </div>
+  );
+}
