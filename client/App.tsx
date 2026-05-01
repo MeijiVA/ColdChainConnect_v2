@@ -14,7 +14,10 @@ import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
+import { TrucksInTransit } from "./pages/TrucksInTransit"; // Matches plural filename
 import NotFound from "./pages/NotFound";
+import { Switch } from "./components/ui/switch";
+
 
 const queryClient = new QueryClient();
 
@@ -41,6 +44,15 @@ const AppContent = () => {
             panelId="sales"
           />
         );
+      case "customers":
+        return (
+          <PlaceholderPanel
+            title="Customer Management"
+            description="All registered retail partners and sari-sari stores"
+            icon="🧑‍🤝‍🧑"
+            panelId="customers"
+          />
+       );
       case "ar":
         return (
           <PlaceholderPanel
@@ -50,6 +62,8 @@ const AppContent = () => {
             panelId="ar"
           />
         );
+      case "trucks":                    // Add this case
+      return <TrucksInTransit />;     
       case "customers":
         return (
           <PlaceholderPanel
@@ -84,15 +98,6 @@ const AppContent = () => {
             description="Track operational costs and truck maintenance"
             icon="🧾"
             panelId="expenses"
-          />
-        );
-      case "qr":
-        return (
-          <PlaceholderPanel
-            title="QR Code Delivery Tracking"
-            description="Generate, scan, and monitor item-level delivery status"
-            icon="⬜"
-            panelId="qr"
           />
         );
       case "forecasting":
