@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // REQ-INV-001: Product interface with all required fields
 interface InventoryProduct {
@@ -15,7 +15,11 @@ interface InventoryProduct {
   lastUpdated: string;
 }
 
-export function Inventory() {
+export function Inventory({
+  missingItemsData = {},
+}: {
+  missingItemsData?: Record<string, { id: string; quantity: number }>;
+} = {}) {
   const [products, setProducts] = useState<InventoryProduct[]>([
     {
       id: "1",
@@ -147,6 +151,25 @@ export function Inventory() {
   });
 
   const itemsPerPage = 10; // REQ-INV-010: 10 records per page
+
+  // Update inventory when items are marked as missing
+  useEffect(() => {
+    if (Object.keys(missingItemsData).length > 0) {
+      setProducts((prevProducts) =>
+        prevProducts.map((product) => {
+          if (missingItemsData[product.sku]) {
+            const missingQty = missingItemsData[product.sku].quantity;
+            return {
+              ...product,
+              quantity: Math.max(0, product.quantity - missingQty),
+              lastUpdated: new Date().toISOString().split("T")[0],
+            };
+          }
+          return product;
+        })
+      );
+    }
+  }, [missingItemsData]);
 
   // REQ-INV-013: Filter products based on search and filters
   const filteredProducts = products.filter((product) => {
