@@ -23,13 +23,21 @@ interface SalesLineItem {
   amount: number;
 }
 
+interface ForecastRecommendation {
+  sku: string;
+  name: string;
+  current: number;
+  recommended: number;
+  confidence: string;
+}
+
 export function Sales() {
-  const [timePeriod, setTimePeriod] = useState<"daily" | "weekly" | "monthly" | "annually">("monthly");
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState<SalesTransaction | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<SalesTransaction | null>(null);
 
   const [transactions, setTransactions] = useState<SalesTransaction[]>([
     {
@@ -251,6 +259,47 @@ export function Sales() {
     .filter((tx) => tx.status === "unpaid")
     .reduce((sum, tx) => sum + tx.total, 0);
 
+  // Generate next Sales ID
+  const getNextSalesId = () => {
+    const lastId = transactions.reduce((max, tx) => {
+      const num = parseInt(tx.salesId.split("-")[1]);
+      return num > max ? num : max;
+    }, 0);
+    return `SLS-${String(lastId + 1).padStart(3, "0")}`;
+  };
+
+  // Handle add/edit transaction
+  const handleSaveTransaction = (newTransaction: SalesTransaction) => {
+    if (editingTransaction) {
+      setTransactions(
+        transactions.map((tx) =>
+          tx.id === editingTransaction.id ? newTransaction : tx
+        )
+      );
+      setEditingTransaction(null);
+    } else {
+      setTransactions([...transactions, newTransaction]);
+    }
+    setIsAddModalOpen(false);
+  };
+
+  // Handle delete transaction
+  const handleDeleteTransaction = (id: string) => {
+    if (confirm("Are you sure you want to delete this transaction?")) {
+      setTransactions(transactions.filter((tx) => tx.id !== id));
+    }
+  };
+
+  // Handle status change
+  const handleStatusChange = (id: string, newStatus: "paid" | "unpaid") => {
+    setTransactions(
+      transactions.map((tx) =>
+        tx.id === id ? { ...tx, status: newStatus } : tx
+      )
+    );
+  };
+
+  // Print receipt
   const handlePrintReceipt = (transaction: SalesTransaction) => {
     const printWindow = window.open("", "", "width=400,height=600");
     if (printWindow) {
@@ -274,13 +323,12 @@ export function Sales() {
         <!DOCTYPE html>
         <html>
         <head>
-          <title>Receipt - ${transaction.salesId}</title>
+          <title>Delivery Receipt - ${transaction.salesId}</title>
           <style>
             body { font-family: Arial, sans-serif; margin: 0; padding: 10px; font-size: 11px; line-height: 1.4; }
             .header { text-align: center; margin-bottom: 10px; border-bottom: 1px solid #000; padding-bottom: 8px; }
             .company-name { font-size: 14px; font-weight: bold; }
             .company-desc { font-size: 9px; color: #666; }
-            .company-addr { font-size: 9px; color: #666; }
             .delivery-receipt { text-align: center; font-weight: bold; font-size: 12px; margin: 5px 0; color: #d00; }
             .receipt-no { text-align: right; margin-bottom: 5px; }
             .info-row { display: flex; justify-content: space-between; margin: 3px 0; }
@@ -304,8 +352,7 @@ export function Sales() {
         <body>
           <div class="header">
             <div class="company-name">ACDP CONSUMER GOODS TRADING</div>
-            <div class="company-desc">Service & Supply, Jalan City of San Fernando (Capas), Pampanga Philippines</div>
-            <div class="company-addr"></div>
+            <div class="company-desc">Serbisyo & Supply, City of San Fernando (Capas), Pampanga Philippines</div>
             <div class="delivery-receipt">DELIVERY RECEIPT</div>
           </div>
 
@@ -379,7 +426,7 @@ export function Sales() {
             Sales Tracking
           </h1>
           <p className="text-xs text-muted mt-1">
-            Record, track, and monitor all sales transactions with AI-powered forecasting
+            Record, track, and monitor all sales transactions with integrated AI forecasting
           </p>
         </div>
       </div>
@@ -409,23 +456,8 @@ export function Sales() {
         />
       </div>
 
-      {/* Time Period Selector and Actions */}
+      {/* Actions */}
       <div className="flex flex-col md:flex-row gap-3">
-        <div className="flex gap-2">
-          {(["daily", "weekly", "monthly", "annually"] as const).map((period) => (
-            <button
-              key={period}
-              onClick={() => setTimePeriod(period)}
-              className={`px-3 py-2 rounded-lg text-xs font-semibold transition-all ${
-                timePeriod === period
-                  ? "bg-accent-2 text-white"
-                  : "bg-white border border-border text-muted hover:bg-off-white"
-              }`}
-            >
-              {period.charAt(0).toUpperCase() + period.slice(1)}
-            </button>
-          ))}
-        </div>
         <div className="flex gap-2 ml-auto">
           <button className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white">
             ⬇ Import
@@ -434,7 +466,10 @@ export function Sales() {
             ⬆ Export
           </button>
           <button
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={() => {
+              setEditingTransaction(null);
+              setIsAddModalOpen(true);
+            }}
             className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
           >
             ＋ Add Item
@@ -448,7 +483,7 @@ export function Sales() {
           <span className="text-muted">🔍</span>
           <input
             type="text"
-            placeholder="Search by Sales ID, Customer ID, date…"
+            placeholder="Search by Sales ID, Customer ID, name…"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -534,14 +569,23 @@ export function Sales() {
                     ₱{transaction.total.toFixed(2)}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
-                    <span
-                      className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold badge-${transaction.status === "paid" ? "green" : "red"}`}
+                    <select
+                      value={transaction.status}
+                      onChange={(e) =>
+                        handleStatusChange(transaction.id, e.target.value as "paid" | "unpaid")
+                      }
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border-none cursor-pointer ${
+                        transaction.status === "paid"
+                          ? "bg-green text-white"
+                          : "bg-red text-white"
+                      }`}
                     >
-                      {transaction.status.charAt(0).toUpperCase() + transaction.status.slice(1)}
-                    </span>
+                      <option value="paid">Paid</option>
+                      <option value="unpaid">Unpaid</option>
+                    </select>
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
-                    <div className="flex gap-2">
+                    <div className="flex gap-1">
                       <button
                         onClick={() => handlePrintReceipt(transaction)}
                         className="px-2 py-1 bg-white border border-border text-navy rounded text-xs font-semibold hover:bg-off-white"
@@ -550,11 +594,21 @@ export function Sales() {
                         🖨
                       </button>
                       <button
-                        onClick={() => setSelectedTransaction(transaction)}
-                        className="px-2 py-1 bg-accent-2 text-white rounded text-xs font-semibold hover:opacity-90"
-                        title="View Details"
+                        onClick={() => {
+                          setEditingTransaction(transaction);
+                          setIsAddModalOpen(true);
+                        }}
+                        className="px-2 py-1 bg-gold text-white rounded text-xs font-semibold hover:opacity-90"
+                        title="Edit"
                       >
-                        ℹ
+                        ✏
+                      </button>
+                      <button
+                        onClick={() => handleDeleteTransaction(transaction.id)}
+                        className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                        title="Delete"
+                      >
+                        🗑
                       </button>
                     </div>
                   </td>
@@ -584,84 +638,411 @@ export function Sales() {
             >
               Next →
             </button>
-            <span className="px-3 py-1 text-xs text-muted">Page: 1 of 4</span>
+            <span className="px-3 py-1 text-xs text-muted">Page: {currentPage} of {totalPages}</span>
           </div>
         </div>
       </div>
 
-      {/* AI Forecasting Section */}
-      <div className="bg-white rounded-2xl border border-border p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div>
-            <h2 className="font-rajdhani text-xl font-bold text-navy">
-              📈 AI Demand Forecasting
-            </h2>
-            <p className="text-xs text-muted mt-1">
-              S.M.A.R.T. recommendations based on historical sales data
-            </p>
-          </div>
-          <button className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90">
-            🔄 Regenerate Forecast
+      {/* AI Demand Forecasting Section */}
+      <ForecastingSection />
+
+      {/* Add/Edit Modal */}
+      {isAddModalOpen && (
+        <SalesModal
+          transaction={editingTransaction}
+          onClose={() => {
+            setIsAddModalOpen(false);
+            setEditingTransaction(null);
+          }}
+          onSave={handleSaveTransaction}
+          nextSalesId={getNextSalesId()}
+        />
+      )}
+    </div>
+  );
+}
+
+function ForecastingSection() {
+  const [forecasts] = useState<ForecastRecommendation[]>([
+    {
+      sku: "7702031",
+      name: "FF Bossing Hungarian Sausage w/Cheese",
+      current: 14,
+      recommended: 200,
+      confidence: "92%",
+    },
+    {
+      sku: "7700169",
+      name: "FF Bossing Cheesedog KingSize",
+      current: 38,
+      recommended: 150,
+      confidence: "88%",
+    },
+    {
+      sku: "7700165",
+      name: "FF Bossing Hatdogs KingSize",
+      current: 56,
+      recommended: 80,
+      confidence: "74%",
+    },
+    {
+      sku: "7702041",
+      name: "FF Bossing Chicken Hd Regular",
+      current: 73,
+      recommended: 60,
+      confidence: "70%",
+    },
+  ]);
+
+  return (
+    <div className="bg-white rounded-2xl border border-border p-6">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="font-rajdhani text-xl font-bold text-navy">
+            📈 AI Demand Forecasting
+          </h2>
+          <p className="text-xs text-muted mt-1">
+            S.M.A.R.T. recommendations based on historical sales data
+          </p>
+        </div>
+        <button className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90">
+          🔄 Regenerate Forecast
+        </button>
+      </div>
+
+      <div className="bg-off-white rounded-lg p-4 mb-4">
+        <p className="text-xs text-muted mb-4">
+          🤖 The AI has analyzed your sales data and recommends the following stock orders:
+        </p>
+
+        <div className="space-y-2">
+          {forecasts.map((rec) => (
+            <div
+              key={rec.sku}
+              className="flex items-center justify-between p-3 bg-white border border-border rounded-lg"
+            >
+              <div>
+                <p className="text-sm font-semibold text-navy">{rec.name}</p>
+                <p className="text-xs text-muted">
+                  Current: {rec.current} units → Recommend: +{rec.recommended} units
+                </p>
+              </div>
+              <div className="flex gap-2 items-center">
+                <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold badge-green">
+                  {rec.confidence} confidence
+                </span>
+                <button className="px-3 py-1 bg-green text-white rounded text-xs font-semibold hover:opacity-90">
+                  Approve
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function SalesModal({
+  transaction,
+  onClose,
+  onSave,
+  nextSalesId,
+}: {
+  transaction: SalesTransaction | null;
+  onClose: () => void;
+  onSave: (transaction: SalesTransaction) => void;
+  nextSalesId: string;
+}) {
+  const [formData, setFormData] = useState<SalesTransaction>(
+    transaction || {
+      id: Date.now().toString(),
+      salesId: nextSalesId,
+      customerId: "",
+      customerName: "",
+      date: new Date().toISOString().split("T")[0],
+      items: [
+        {
+          sku: "",
+          description: "",
+          quantity: 0,
+          unitPrice: 0,
+          amount: 0,
+        },
+      ],
+      quantity: 0,
+      unitPrice: 0,
+      total: 0,
+      status: "unpaid",
+    }
+  );
+
+  const [items, setItems] = useState(formData.items);
+
+  const updateItem = (index: number, field: keyof SalesLineItem, value: any) => {
+    const updatedItems = [...items];
+    updatedItems[index] = { ...updatedItems[index], [field]: value };
+
+    // Recalculate amount
+    if (field === "quantity" || field === "unitPrice") {
+      updatedItems[index].amount =
+        updatedItems[index].quantity * updatedItems[index].unitPrice;
+    }
+
+    setItems(updatedItems);
+  };
+
+  const addItem = () => {
+    setItems([
+      ...items,
+      {
+        sku: "",
+        description: "",
+        quantity: 0,
+        unitPrice: 0,
+        amount: 0,
+      },
+    ]);
+  };
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const handleSave = () => {
+    if (!formData.customerId || !formData.customerName) {
+      alert("Please fill in customer information");
+      return;
+    }
+
+    if (items.some((item) => !item.sku || !item.description || item.quantity <= 0)) {
+      alert("Please fill in all item details");
+      return;
+    }
+
+    const total = items.reduce((sum, item) => sum + item.amount, 0);
+    const firstItem = items[0];
+
+    const updatedTransaction: SalesTransaction = {
+      ...formData,
+      items,
+      total,
+      quantity: firstItem.quantity,
+      unitPrice: firstItem.unitPrice,
+    };
+
+    onSave(updatedTransaction);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl border border-border max-w-4xl w-full max-h-screen overflow-y-auto">
+        <div className="sticky top-0 bg-navy-mid px-6 py-4 flex items-center justify-between border-b border-border">
+          <h2 className="font-rajdhani text-lg font-bold text-white">
+            {transaction ? "Edit Sale Transaction" : "Create New Sale Transaction"}
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-white hover:opacity-70 text-2xl"
+          >
+            ×
           </button>
         </div>
 
-        <div className="bg-off-white rounded-lg p-4 mb-4">
-          <p className="text-xs text-muted mb-4">
-            🤖 The AI has analyzed your sales data and recommends the following stock orders:
-          </p>
-
-          <div className="space-y-2">
-            {[
-              {
-                sku: "7702031",
-                name: "FF Bossing Hungarian Sausage w/Cheese",
-                current: 14,
-                recommended: 200,
-                confidence: "92%",
-              },
-              {
-                sku: "7700169",
-                name: "FF Bossing Cheesedog KingSize",
-                current: 38,
-                recommended: 150,
-                confidence: "88%",
-              },
-              {
-                sku: "7700165",
-                name: "FF Bossing Hatdogs KingSize",
-                current: 56,
-                recommended: 80,
-                confidence: "74%",
-              },
-              {
-                sku: "7702041",
-                name: "FF Bossing Chicken Hd Regular",
-                current: 73,
-                recommended: 60,
-                confidence: "70%",
-              },
-            ].map((rec) => (
-              <div
-                key={rec.sku}
-                className="flex items-center justify-between p-3 bg-white border border-border rounded-lg"
-              >
-                <div>
-                  <p className="text-sm font-semibold text-navy">{rec.name}</p>
-                  <p className="text-xs text-muted">
-                    Current: {rec.current} units → Recommend: +{rec.recommended} units
-                  </p>
-                </div>
-                <div className="flex gap-2 items-center">
-                  <span className="px-2.5 py-0.5 rounded-lg text-xs font-semibold badge-green">
-                    {rec.confidence} confidence
-                  </span>
-                  <button className="px-3 py-1 bg-green text-white rounded text-xs font-semibold hover:opacity-90">
-                    Approve
-                  </button>
-                </div>
-              </div>
-            ))}
+        <div className="p-6 space-y-6">
+          {/* Transaction Header */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-navy mb-1">
+                Sales ID
+              </label>
+              <input
+                type="text"
+                value={formData.salesId}
+                disabled
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-off-white text-navy font-semibold"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-navy mb-1">
+                Customer ID *
+              </label>
+              <input
+                type="text"
+                value={formData.customerId}
+                onChange={(e) =>
+                  setFormData({ ...formData, customerId: e.target.value })
+                }
+                placeholder="CUST-001"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+              />
+            </div>
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-navy mb-1">
+                Customer Name *
+              </label>
+              <input
+                type="text"
+                value={formData.customerName}
+                onChange={(e) =>
+                  setFormData({ ...formData, customerName: e.target.value })
+                }
+                placeholder="Store Name"
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+              />
+            </div>
           </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-navy mb-1">
+                Sales Date *
+              </label>
+              <input
+                type="date"
+                value={formData.date}
+                onChange={(e) =>
+                  setFormData({ ...formData, date: e.target.value })
+                }
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-navy mb-1">
+                Payment Status
+              </label>
+              <select
+                value={formData.status}
+                onChange={(e) =>
+                  setFormData({
+                    ...formData,
+                    status: e.target.value as "paid" | "unpaid",
+                  })
+                }
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+              >
+                <option value="unpaid">Unpaid</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Items Section */}
+          <div>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-rajdhani text-lg font-bold text-navy">Items</h3>
+              <button
+                onClick={addItem}
+                className="px-3 py-1 bg-accent-2 text-white rounded text-xs font-semibold hover:opacity-90"
+              >
+                ＋ Add Item
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {items.map((item, index) => (
+                <div key={index} className="border border-border rounded-lg p-4 bg-off-white">
+                  <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
+                    <div>
+                      <label className="block text-xs font-semibold text-navy mb-1">
+                        SKU *
+                      </label>
+                      <input
+                        type="text"
+                        value={item.sku}
+                        onChange={(e) => updateItem(index, "sku", e.target.value)}
+                        placeholder="7700165"
+                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                      />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-xs font-semibold text-navy mb-1">
+                        Description *
+                      </label>
+                      <input
+                        type="text"
+                        value={item.description}
+                        onChange={(e) =>
+                          updateItem(index, "description", e.target.value)
+                        }
+                        placeholder="Product Description"
+                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-navy mb-1">
+                        Quantity *
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateItem(index, "quantity", parseInt(e.target.value) || 0)
+                        }
+                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-semibold text-navy mb-1">
+                        Unit Price *
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={item.unitPrice}
+                        onChange={(e) =>
+                          updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)
+                        }
+                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-xs text-muted">Amount: </span>
+                      <span className="font-semibold text-navy">
+                        ₱{item.amount.toFixed(2)}
+                      </span>
+                    </div>
+                    {items.length > 1 && (
+                      <button
+                        onClick={() => removeItem(index)}
+                        className="px-3 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Total */}
+          <div className="bg-navy-mid rounded-lg p-4 flex justify-between items-center">
+            <span className="font-rajdhani text-lg font-bold text-white">Total Amount:</span>
+            <span className="font-rajdhani text-2xl font-bold text-green">
+              ₱{items.reduce((sum, item) => sum + item.amount, 0).toFixed(2)}
+            </span>
+          </div>
+        </div>
+
+        <div className="sticky bottom-0 bg-off-white px-6 py-4 flex justify-end gap-2 border-t border-border">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-border rounded-lg font-semibold text-sm hover:bg-white"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
+          >
+            {transaction ? "Update" : "Create"} Transaction
+          </button>
         </div>
       </div>
     </div>
