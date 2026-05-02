@@ -14,6 +14,7 @@ import { Sales } from "./pages/Sales";
 import { Customer } from "./pages/Customer";
 import { EmployeeManagement } from "./pages/EmployeeManagement";
 import { Payroll } from "./pages/Payroll";
+import { Settings } from "./pages/Settings";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sidebar } from "./components/Sidebar";
@@ -74,24 +75,8 @@ const AppContent = () => {
             panelId="notifications"
           />
         );
-      case "audit":
-        return (
-          <PlaceholderPanel
-            title="Audit Log"
-            description="Complete activity trail — Administrator access only"
-            icon="🕵️"
-            panelId="audit"
-          />
-        );
       case "settings":
-        return (
-          <PlaceholderPanel
-            title="Settings"
-            description="Profile, security, and system configuration"
-            icon="⚙️"
-            panelId="settings"
-          />
-        );
+        return <Settings />;
       default:
         return <Dashboard />;
     }

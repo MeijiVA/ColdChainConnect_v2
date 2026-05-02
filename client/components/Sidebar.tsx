@@ -26,7 +26,6 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
 
   const systemItems = [
     { id: "notifications", icon: "🔔", label: "Notifications" },
-    { id: "audit", icon: "🕵️", label: "Audit Log" },
     { id: "settings", icon: "⚙️", label: "Settings" },
   ];
 
@@ -39,9 +38,13 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
 
       {/* Profile Section */}
       <div className="flex flex-col items-center gap-2 px-4 pb-5 border-b border-border w-full">
-        <div className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-2 to-navy-light flex items-center justify-center text-2xl font-bold border-2 border-accent-2">
+        <button
+          onClick={() => onPanelChange("settings")}
+          className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-2 to-navy-light flex items-center justify-center text-2xl font-bold border-2 border-accent-2 hover:border-gold hover:shadow-lg transition-all cursor-pointer"
+          title="Go to Settings"
+        >
           👤
-        </div>
+        </button>
         <div className="font-rajdhani text-sm font-semibold text-center text-white">
           Mizael Anton M.
         </div>
