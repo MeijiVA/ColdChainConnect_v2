@@ -15,6 +15,7 @@ import { Customer } from "./pages/Customer";
 import { EmployeeManagement } from "./pages/EmployeeManagement";
 import { Payroll } from "./pages/Payroll";
 import { Settings } from "./pages/Settings";
+import { FinanceLedger } from "./pages/FinanceLedger";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sidebar } from "./components/Sidebar";
@@ -47,14 +48,7 @@ const AppContent = () => {
       case "payroll":
         return <Payroll />;
       case "expenses":
-        return (
-          <PlaceholderPanel
-            title="Expenses & Finance"
-            description="Track operational costs and truck maintenance"
-            icon="🧾"
-            panelId="expenses"
-          />
-        );
+        return <FinanceLedger />;
       case "trucks":
         return <TrucksInTransit />;
       case "reports":
