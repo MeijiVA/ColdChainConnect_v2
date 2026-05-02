@@ -24,10 +24,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   ];
   // Note: QR Tracking and AI Forecasting have been integrated into other modules
 
-  const systemItems = [
-    { id: "notifications", icon: "🔔", label: "Notifications" },
-    { id: "settings", icon: "⚙️", label: "Settings" },
-  ];
+  const systemItems: typeof additionalItems = [];
 
   return (
     <nav className="hidden md:flex w-56 bg-navy text-white flex-col items-center py-6 px-0 gap-0 flex-shrink-0 min-h-screen sticky top-0 h-screen overflow-y-auto">

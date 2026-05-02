@@ -66,15 +66,6 @@ const AppContent = () => {
             panelId="reports"
           />
         );
-      case "notifications":
-        return (
-          <PlaceholderPanel
-            title="Notifications"
-            description="System alerts and activity feed"
-            icon="🔔"
-            panelId="notifications"
-          />
-        );
       case "settings":
         return <Settings />;
       default:
@@ -94,7 +85,10 @@ const AppContent = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen bg-off-white min-w-0">
         {/* Topbar */}
-        <Topbar userName="Mizael Anton" />
+        <Topbar
+          userName="Mizael Anton"
+          onSettingsClick={() => setActivePanel("settings")}
+        />
 
         {/* Panel Content */}
         {renderPanel()}
