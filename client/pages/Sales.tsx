@@ -1,5 +1,20 @@
 import { useState } from "react";
 
+// Inventory product interface to match inventory data
+interface InventoryProduct {
+  id: string;
+  sku: string;
+  description: string;
+  unitPrice: number;
+  supplierId: string;
+  weight: number;
+  quantity: number;
+  expiryDate: string;
+  imageFilename?: string;
+  reorderPoint: number;
+  lastUpdated: string;
+}
+
 interface SalesTransaction {
   id: string;
   salesId: string;
@@ -32,6 +47,114 @@ interface ForecastRecommendation {
 }
 
 export function Sales() {
+  // Inventory data
+  const [inventory] = useState<InventoryProduct[]>([
+    {
+      id: "1",
+      sku: "7700165",
+      description: "FF Bossing Hatdogs KingSize",
+      unitPrice: 148.57,
+      supplierId: "SUP-003",
+      weight: 1.0,
+      quantity: 56,
+      expiryDate: "2026-05-05",
+      imageFilename: "ff-hatdogs-kingsize.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-28",
+    },
+    {
+      id: "2",
+      sku: "7700169",
+      description: "FF Bossing Cheesedog KingSize",
+      unitPrice: 156.19,
+      supplierId: "SUP-003",
+      weight: 1.0,
+      quantity: 38,
+      expiryDate: "2026-05-18",
+      imageFilename: "ff-cheesedog-kingsize.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-27",
+    },
+    {
+      id: "3",
+      sku: "7700160",
+      description: "FF Bossing Chicken Franks King",
+      unitPrice: 163.81,
+      supplierId: "SUP-002",
+      weight: 1.0,
+      quantity: 130,
+      expiryDate: "2026-06-10",
+      imageFilename: "ff-chicken-franks.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-26",
+    },
+    {
+      id: "4",
+      sku: "7702039",
+      description: "FF Bossing Cheesedogs",
+      unitPrice: 36.19,
+      supplierId: "SUP-004",
+      weight: 1.0,
+      quantity: 148,
+      expiryDate: "2026-06-22",
+      imageFilename: "ff-cheesedogs.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-25",
+    },
+    {
+      id: "5",
+      sku: "7700181",
+      description: "FF Bossing Cheesedog Footlong",
+      unitPrice: 153.33,
+      supplierId: "SUP-005",
+      weight: 1.0,
+      quantity: 148,
+      expiryDate: "2026-07-01",
+      imageFilename: "ff-cheesedog-footlong.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-24",
+    },
+    {
+      id: "6",
+      sku: "7702041",
+      description: "FF Bossing Chicken Hd Regular",
+      unitPrice: 35.34,
+      supplierId: "SUP-002",
+      weight: 1.0,
+      quantity: 73,
+      expiryDate: "2026-06-30",
+      imageFilename: "ff-chicken-hd-regular.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-23",
+    },
+    {
+      id: "7",
+      sku: "7702031",
+      description: "FF Bossing Hungarian Sausage w/Cheese",
+      unitPrice: 129.32,
+      supplierId: "SUP-005",
+      weight: 1.0,
+      quantity: 14,
+      expiryDate: "2026-05-12",
+      imageFilename: "ff-hungarian-sausage.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-22",
+    },
+    {
+      id: "8",
+      sku: "770218",
+      description: "McCain Fries",
+      unitPrice: 500.0,
+      supplierId: "SUP-004",
+      weight: 12.0,
+      quantity: 199,
+      expiryDate: "2026-08-15",
+      imageFilename: "mccain-fries.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-21",
+    },
+  ]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -656,6 +779,7 @@ export function Sales() {
           }}
           onSave={handleSaveTransaction}
           nextSalesId={getNextSalesId()}
+          inventory={inventory}
         />
       )}
     </div>
@@ -748,11 +872,13 @@ function SalesModal({
   onClose,
   onSave,
   nextSalesId,
+  inventory,
 }: {
   transaction: SalesTransaction | null;
   onClose: () => void;
   onSave: (transaction: SalesTransaction) => void;
   nextSalesId: string;
+  inventory: InventoryProduct[];
 }) {
   const [formData, setFormData] = useState<SalesTransaction>(
     transaction || {
@@ -782,6 +908,15 @@ function SalesModal({
   const updateItem = (index: number, field: keyof SalesLineItem, value: any) => {
     const updatedItems = [...items];
     updatedItems[index] = { ...updatedItems[index], [field]: value };
+
+    // If SKU changed, auto-fill description and unit price from inventory
+    if (field === "sku") {
+      const inventoryItem = inventory.find((inv) => inv.sku === value);
+      if (inventoryItem) {
+        updatedItems[index].description = inventoryItem.description;
+        updatedItems[index].unitPrice = inventoryItem.unitPrice;
+      }
+    }
 
     // Recalculate amount
     if (field === "quantity" || field === "unitPrice") {
@@ -945,28 +1080,30 @@ function SalesModal({
                   <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-3">
                     <div>
                       <label className="block text-xs font-semibold text-navy mb-1">
-                        SKU *
+                        Select Product *
                       </label>
-                      <input
-                        type="text"
+                      <select
                         value={item.sku}
                         onChange={(e) => updateItem(index, "sku", e.target.value)}
-                        placeholder="7700165"
                         className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                      />
+                      >
+                        <option value="">Choose product...</option>
+                        {inventory.map((inv) => (
+                          <option key={inv.id} value={inv.sku}>
+                            {inv.sku} - {inv.description}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <div className="md:col-span-2">
                       <label className="block text-xs font-semibold text-navy mb-1">
-                        Description *
+                        Description
                       </label>
                       <input
                         type="text"
                         value={item.description}
-                        onChange={(e) =>
-                          updateItem(index, "description", e.target.value)
-                        }
-                        placeholder="Product Description"
-                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                        disabled
+                        className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-off-white text-navy font-semibold"
                       />
                     </div>
                     <div>
@@ -985,17 +1122,15 @@ function SalesModal({
                     </div>
                     <div>
                       <label className="block text-xs font-semibold text-navy mb-1">
-                        Unit Price *
+                        Unit Price
                       </label>
                       <input
                         type="number"
                         step="0.01"
                         min="0"
                         value={item.unitPrice}
-                        onChange={(e) =>
-                          updateItem(index, "unitPrice", parseFloat(e.target.value) || 0)
-                        }
-                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                        disabled
+                        className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-off-white text-navy font-semibold"
                       />
                     </div>
                   </div>
