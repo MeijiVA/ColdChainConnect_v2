@@ -14,6 +14,7 @@ import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sales } from "./pages/Sales";
 import { Payroll } from "./pages/Payroll";
 import { Customer } from "./pages/Customer";
+import { EmployeeManagement } from "./pages/EmployeeManagement";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -50,14 +51,7 @@ const AppContent = () => {
       case "customers":
         return <Customer />;
       case "employees":
-        return (
-          <PlaceholderPanel
-            title="Employee Management"
-            description="Manage staff accounts and access levels"
-            icon="🪪"
-            panelId="employees"
-          />
-        );
+        return <EmployeeManagement />;
       case "payroll":
         return <Payroll />;
       case "expenses":

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export function Dashboard() {
-  const [salesPeriod, setSalesPeriod] = useState<"daily" | "weekly" | "monthly">(
+  const [period, setPeriod] = useState<"daily" | "weekly" | "monthly" | "yearly">(
     "monthly"
   );
 
@@ -9,31 +9,44 @@ export function Dashboard() {
   const dashboardData = {
     totalProducts: 9,
     totalCustomers: 10,
-    totalSales: 38,
-    profitsGenerated: 43505.6,
     lowStockCount: 4,
     expiringCount: 2,
     pendingOrders: 3,
     totalSuppliers: 5,
   };
 
-  const salesSummary = {
+  const periodData = {
     daily: {
+      totalSales: 38,
+      netRevenue: 12024.48,
       amount: "₱3,200.45",
       transactions: 5,
       trend: "+12%",
     },
     weekly: {
+      totalSales: 156,
+      netRevenue: 68950.80,
       amount: "₱18,950.80",
       transactions: 22,
       trend: "+8%",
     },
     monthly: {
+      totalSales: 580,
+      netRevenue: 189505.60,
       amount: "₱43,505.60",
-      transactions: 38,
+      transactions: 95,
       trend: "+15%",
     },
+    yearly: {
+      totalSales: 7200,
+      netRevenue: 2340000.00,
+      amount: "₱580,000.00",
+      transactions: 1200,
+      trend: "+22%",
+    },
   };
+
+  const currentPeriodData = periodData[period];
 
   const currentSalesSummary = salesSummary[salesPeriod];
 
@@ -75,41 +88,58 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* REQ-DASH-001: Central Display - KPI Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Products"
-          value={dashboardData.totalProducts.toString()}
-          subtitle="Active SKUs in inventory"
-          colorIndex={0}
-          icon="📦"
-          trend="+2"
-        />
-        <StatCard
-          label="Total Customers"
-          value={dashboardData.totalCustomers.toString()}
-          subtitle="Registered retail partners"
-          colorIndex={1}
-          icon="🧑‍🤝‍🧑"
-          trend="+1"
-        />
-        <StatCard
-          label="Total Sales"
-          value={dashboardData.totalSales.toString()}
-          subtitle="Transactions this period"
-          colorIndex={2}
-          icon="💳"
-          trend="+5"
-        />
-        <StatCard
-          label="Profits Generated"
-          value={`₱${dashboardData.profitsGenerated.toLocaleString()}`}
-          subtitle="Net revenue this month"
-          colorIndex={3}
-          icon="💰"
-          trend="+15%"
-          isGreen
-        />
+      {/* REQ-DASH-001: Central Display - KPI Stat Cards with Period Filter */}
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-2">
+          {(["daily", "weekly", "monthly", "yearly"] as const).map((p) => (
+            <button
+              key={p}
+              onClick={() => setPeriod(p)}
+              className={`px-4 py-2 rounded-lg text-xs font-semibold font-barlow-cond letter-spacing-tight transition-all ${
+                period === p
+                  ? "bg-accent-2 text-white"
+                  : "bg-off-white text-muted hover:bg-navy/10"
+              }`}
+            >
+              {p.charAt(0).toUpperCase() + p.slice(1)}
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            label="Total Products"
+            value={dashboardData.totalProducts.toString()}
+            subtitle="Active SKUs in inventory"
+            colorIndex={0}
+            icon="📦"
+            trend="+2"
+          />
+          <StatCard
+            label="Total Customers"
+            value={dashboardData.totalCustomers.toString()}
+            subtitle="Registered retail partners"
+            colorIndex={1}
+            icon="🧑‍🤝‍🧑"
+            trend="+1"
+          />
+          <StatCard
+            label="Total Sales"
+            value={currentPeriodData.totalSales.toString()}
+            subtitle={`Transactions ${period}`}
+            colorIndex={2}
+            icon="💳"
+            trend="+5"
+          />
+          <StatCard
+            label="Net Revenue"
+            value={`₱${currentPeriodData.netRevenue.toLocaleString()}`}
+            subtitle={`Revenue this ${period}`}
+            colorIndex={3}
+            icon="💰"
+            trend="+15%"
+            isGreen
+          />
+        </div>
       </div>
 
       {/* REQ-DASH-008: Alerts Section */}
@@ -145,42 +175,27 @@ export function Dashboard() {
               Sales Summary
             </h2>
             <p className="text-xs text-muted mt-1">
-              {salesPeriod.charAt(0).toUpperCase() + salesPeriod.slice(1)} breakdown
+              {period.charAt(0).toUpperCase() + period.slice(1)} breakdown
             </p>
-          </div>
-          <div className="flex gap-2">
-            {(["daily", "weekly", "monthly"] as const).map((period) => (
-              <button
-                key={period}
-                onClick={() => setSalesPeriod(period)}
-                className={`px-4 py-2 rounded-lg text-xs font-semibold font-barlow-cond letter-spacing-tight transition-all ${
-                  salesPeriod === period
-                    ? "bg-accent-2 text-white"
-                    : "bg-off-white text-muted hover:bg-navy/10"
-                }`}
-              >
-                {period.charAt(0).toUpperCase() + period.slice(1)}
-              </button>
-            ))}
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <SalesMetricCard
-            label={`${salesPeriod.charAt(0).toUpperCase() + salesPeriod.slice(1)} Sales`}
-            value={currentSalesSummary.amount}
-            subtext={`${currentSalesSummary.transactions} transactions`}
+            label={`${period.charAt(0).toUpperCase() + period.slice(1)} Sales`}
+            value={currentPeriodData.amount}
+            subtext={`${currentPeriodData.transactions} transactions`}
             color="accent-2"
           />
           <SalesMetricCard
             label="Growth Trend"
-            value={currentSalesSummary.trend}
+            value={currentPeriodData.trend}
             subtext="vs previous period"
             color="green"
           />
           <SalesMetricCard
             label="Avg Transaction"
-            value={`₱${Math.round(parseFloat(currentSalesSummary.amount.replace(/₱|,/g, "")) / currentSalesSummary.transactions).toLocaleString()}`}
+            value={`₱${Math.round(parseFloat(currentPeriodData.amount.replace(/₱|,/g, "")) / currentPeriodData.transactions).toLocaleString()}`}
             subtext="per transaction"
             color="gold"
           />
@@ -189,7 +204,7 @@ export function Dashboard() {
         {/* Sales Chart */}
         <div>
           <h3 className="font-rajdhani text-sm font-semibold text-navy mb-4">
-            Sales Activity ({salesPeriod === "daily" ? "Hourly" : salesPeriod === "weekly" ? "Daily" : "Weekly"})
+            Sales Activity ({period === "daily" ? "Hourly" : period === "weekly" ? "Daily" : period === "monthly" ? "Weekly" : "Monthly"})
           </h3>
           <div className="flex items-end gap-1.5 h-40 px-2 bg-off-white rounded-lg p-4">
             {[40, 90, 60, 120, 80, 50, 30].map((height, idx) => (
@@ -204,7 +219,7 @@ export function Dashboard() {
                       : "hsl(var(--navy-light))",
                 }}
                 title={
-                  salesPeriod === "daily"
+                  period === "daily"
                     ? `${9 + idx}:00 - ${(height * 100).toFixed(0)} units`
                     : ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][idx]
                 }
