@@ -15,6 +15,7 @@ import { Customer } from "./pages/Customer";
 import { EmployeeManagement } from "./pages/EmployeeManagement";
 import { Payroll } from "./pages/Payroll";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
+import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import NotFound from "./pages/NotFound";
@@ -54,14 +55,7 @@ const AppContent = () => {
           />
         );
       case "trucks":
-        return (
-          <PlaceholderPanel
-            title="Trucks In Transit"
-            description="Track active shipments and delivery routes"
-            icon="🚚"
-            panelId="trucks"
-          />
-        );
+        return <TrucksInTransit />;
       case "reports":
         return (
           <PlaceholderPanel
