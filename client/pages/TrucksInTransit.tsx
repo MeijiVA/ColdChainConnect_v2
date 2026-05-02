@@ -480,6 +480,7 @@ export function TrucksInTransit() {
   );
 }
 
+// Helper Components
 // Status Badge Component
 function StatusBadge({
   status,
