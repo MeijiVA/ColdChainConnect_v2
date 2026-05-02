@@ -25,7 +25,118 @@ interface DeliveryItem {
   status: "in_storage" | "in_transit" | "delivered" | "missing";
 }
 
+// Sales data interface
+interface SalesTransaction {
+  id: string;
+  salesId: string;
+  customerId: string;
+  customerName: string;
+  date: string;
+  items: SalesLineItem[];
+  quantity: number;
+  unitPrice: number;
+  total: number;
+  status: "paid" | "unpaid";
+  paymentMethod?: string;
+  notes?: string;
+}
+
+interface SalesLineItem {
+  sku: string;
+  description: string;
+  quantity: number;
+  unitPrice: number;
+  amount: number;
+}
+
 export function TrucksInTransit() {
+  // Sample sales data - in real app, this would come from a database or API
+  const [availableSales] = useState<SalesTransaction[]>([
+    {
+      id: "1",
+      salesId: "SLS-001",
+      customerId: "CUST-003",
+      customerName: "KM5 Convenience Store",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7700165",
+          description: "FF Bossing Hatdogs KingSize",
+          quantity: 24,
+          unitPrice: 156.19,
+          amount: 3748.56,
+        },
+      ],
+      quantity: 24,
+      unitPrice: 156.19,
+      total: 3748.56,
+      status: "paid",
+      paymentMethod: "Cash",
+    },
+    {
+      id: "2",
+      salesId: "SLS-002",
+      customerId: "CUST-0010",
+      customerName: "Ate Rosa Sari-Sari",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7700169",
+          description: "FF Bossing Cheesedog KingSize",
+          quantity: 8,
+          unitPrice: 156.19,
+          amount: 1249.52,
+        },
+      ],
+      quantity: 8,
+      unitPrice: 156.19,
+      total: 1249.52,
+      status: "unpaid",
+    },
+    {
+      id: "3",
+      salesId: "SLS-003",
+      customerId: "CUST-005",
+      customerName: "Aling Nena Store",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7702041",
+          description: "FF Bossing Chicken Hd Regular",
+          quantity: 15,
+          unitPrice: 35.34,
+          amount: 530.10,
+        },
+      ],
+      quantity: 15,
+      unitPrice: 35.34,
+      total: 530.10,
+      status: "paid",
+      paymentMethod: "30 Days Credit",
+    },
+    {
+      id: "4",
+      salesId: "SLS-004",
+      customerId: "CUST-004",
+      customerName: "Mang Ben Palengke",
+      date: "2025-12-01",
+      items: [
+        {
+          sku: "7700160",
+          description: "FF Bossing Chicken Franks King",
+          quantity: 10,
+          unitPrice: 156.19,
+          amount: 1561.90,
+        },
+      ],
+      quantity: 10,
+      unitPrice: 156.19,
+      total: 1561.90,
+      status: "paid",
+      paymentMethod: "Cash",
+    },
+  ]);
+
   const [trucks, setTrucks] = useState<TruckDelivery[]>([
     {
       id: "TRK-001",
@@ -474,6 +585,7 @@ export function TrucksInTransit() {
         <AddTruckModal
           onClose={() => setShowAddTruckModal(false)}
           onAdd={handleAddTruck}
+          availableSales={availableSales}
         />
       )}
     </div>
@@ -693,55 +805,48 @@ function QRScannerModal({
 function AddTruckModal({
   onClose,
   onAdd,
+  availableSales,
 }: {
   onClose: () => void;
   onAdd: (truck: TruckDelivery) => void;
+  availableSales: SalesTransaction[];
 }) {
   const [formData, setFormData] = useState({
     truckPlate: "",
     driver: "",
     driverId: "",
-    origin: "",
+    origin: "ACDP Warehouse, Pampanga",
     destination: "",
     departureTime: "",
     estimatedArrival: "",
   });
 
-  const [items, setItems] = useState<DeliveryItem[]>([
-    {
-      id: "1",
-      sku: "",
-      description: "",
-      qrCode: "",
-      quantity: 0,
-      status: "in_storage",
-    },
-  ]);
+  const [selectedSales, setSelectedSales] = useState<string[]>([]);
+  const [showSalesError, setShowSalesError] = useState(false);
 
-  const handleItemChange = (index: number, field: keyof DeliveryItem, value: any) => {
-    const updatedItems = [...items];
-    updatedItems[index] = { ...updatedItems[index], [field]: value };
-    setItems(updatedItems);
-  };
+  // Get items from selected sales
+  const getItemsFromSales = () => {
+    const items: DeliveryItem[] = [];
+    let itemId = 1;
 
-  const addItem = () => {
-    setItems([
-      ...items,
-      {
-        id: String(items.length + 1),
-        sku: "",
-        description: "",
-        qrCode: "",
-        quantity: 0,
-        status: "in_storage",
-      },
-    ]);
-  };
+    selectedSales.forEach((saleId) => {
+      const sale = availableSales.find((s) => s.id === saleId);
+      if (sale) {
+        sale.items.forEach((item) => {
+          items.push({
+            id: String(itemId),
+            sku: item.sku,
+            description: item.description,
+            qrCode: `QR-${item.sku}-${Date.now()}-${itemId}`,
+            quantity: item.quantity,
+            status: "in_storage",
+          });
+          itemId++;
+        });
+      }
+    });
 
-  const removeItem = (index: number) => {
-    if (items.length > 1) {
-      setItems(items.filter((_, i) => i !== index));
-    }
+    return items;
   };
 
   const handleAdd = () => {
@@ -750,11 +855,14 @@ function AddTruckModal({
       !formData.driver ||
       !formData.origin ||
       !formData.destination ||
-      items.some((item) => !item.sku || !item.description || item.quantity <= 0)
+      selectedSales.length === 0
     ) {
-      alert("Please fill in all required fields");
+      setShowSalesError(selectedSales.length === 0);
+      alert("Please fill in all required fields and select at least one sales order");
       return;
     }
+
+    const items = getItemsFromSales();
 
     const newTruck: TruckDelivery = {
       id: `TRK-${Date.now()}`,
@@ -766,15 +874,25 @@ function AddTruckModal({
       departureTime: formData.departureTime,
       estimatedArrival: formData.estimatedArrival,
       status: "in_storage",
-      items: items.map((item, idx) => ({
-        ...item,
-        id: String(idx + 1),
-      })),
+      items,
       lastUpdate: new Date().toLocaleString(),
     };
 
     onAdd(newTruck);
   };
+
+  const toggleSaleSelection = (saleId: string) => {
+    setSelectedSales((prev) =>
+      prev.includes(saleId) ? prev.filter((id) => id !== saleId) : [...prev, saleId]
+    );
+    setShowSalesError(false);
+  };
+
+  const selectedSalesData = availableSales.filter((s) => selectedSales.includes(s.id));
+  const totalItems = selectedSalesData.reduce(
+    (sum, sale) => sum + sale.items.reduce((itemSum, item) => itemSum + item.quantity, 0),
+    0
+  );
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -895,92 +1013,73 @@ function AddTruckModal({
             </div>
           </div>
 
-          {/* Items Section */}
+          {/* Sales Selection Section */}
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="font-rajdhani text-lg font-bold text-navy">Items to Deliver</h3>
-              <button
-                onClick={addItem}
-                className="px-3 py-1 bg-accent-2 text-white rounded text-xs font-semibold hover:opacity-90"
-              >
-                ＋ Add Item
-              </button>
+            <h3 className={`font-rajdhani text-lg font-bold ${showSalesError ? "text-red" : "text-navy"} mb-4`}>
+              Select Sales Orders to Deliver *
+            </h3>
+            <p className="text-xs text-muted mb-3">
+              Select one or more sales orders. Items from selected sales will be automatically added to the truck.
+            </p>
+
+            <div className={`border-2 rounded-lg p-4 space-y-2 ${showSalesError ? "border-red bg-red/5" : "border-border"}`}>
+              {availableSales.length === 0 ? (
+                <p className="text-sm text-muted italic">No sales orders available</p>
+              ) : (
+                availableSales.map((sale) => (
+                  <label
+                    key={sale.id}
+                    className="flex items-start gap-3 p-3 rounded-lg hover:bg-off-white cursor-pointer transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedSales.includes(sale.id)}
+                      onChange={() => toggleSaleSelection(sale.id)}
+                      className="mt-1 w-4 h-4 rounded border-border cursor-pointer"
+                    />
+                    <div className="flex-1">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-semibold text-navy text-sm">
+                            {sale.salesId} - {sale.customerName}
+                          </p>
+                          <p className="text-xs text-muted">{sale.customerId}</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-navy text-sm">
+                            {sale.items.reduce((sum, item) => sum + item.quantity, 0)} units
+                          </p>
+                          <p className="text-xs text-muted">₱{sale.total.toLocaleString("en-PH")}</p>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-xs text-muted">
+                        {sale.items.map((item) => `${item.quantity}x ${item.description}`).join(" | ")}
+                      </div>
+                    </div>
+                  </label>
+                ))
+              )}
             </div>
 
-            <div className="space-y-3">
-              {items.map((item, index) => (
-                <div key={index} className="border border-border rounded-lg p-4 bg-off-white">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-3 mb-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-navy mb-1">
-                        SKU *
-                      </label>
-                      <input
-                        type="text"
-                        value={item.sku}
-                        onChange={(e) => handleItemChange(index, "sku", e.target.value)}
-                        placeholder="7700165"
-                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                      />
+            {selectedSalesData.length > 0 && (
+              <div className="mt-4 bg-off-white rounded-lg p-4">
+                <h4 className="font-semibold text-navy text-sm mb-2">Selected Sales Summary:</h4>
+                <div className="space-y-1 text-xs">
+                  {selectedSalesData.map((sale) => (
+                    <div key={sale.id} className="flex justify-between">
+                      <span className="text-muted">{sale.salesId} ({sale.customerName}):</span>
+                      <span className="font-semibold text-navy">
+                        {sale.items.reduce((sum, item) => sum + item.quantity, 0)} units
+                      </span>
                     </div>
-                    <div className="md:col-span-2">
-                      <label className="block text-xs font-semibold text-navy mb-1">
-                        Description *
-                      </label>
-                      <input
-                        type="text"
-                        value={item.description}
-                        onChange={(e) =>
-                          handleItemChange(index, "description", e.target.value)
-                        }
-                        placeholder="Product Description"
-                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-navy mb-1">
-                        Quantity *
-                      </label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) =>
-                          handleItemChange(index, "quantity", parseInt(e.target.value) || 0)
-                        }
-                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                      />
-                    </div>
+                  ))}
+                  <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
+                    <span className="text-navy">Total Items:</span>
+                    <span className="text-navy">{totalItems} units</span>
                   </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-navy mb-1">
-                        QR Code
-                      </label>
-                      <input
-                        type="text"
-                        value={item.qrCode}
-                        onChange={(e) =>
-                          handleItemChange(index, "qrCode", e.target.value)
-                        }
-                        placeholder="QR-20260430-001"
-                        className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                      />
-                    </div>
-                  </div>
-
-                  {items.length > 1 && (
-                    <button
-                      onClick={() => removeItem(index)}
-                      className="mt-3 px-3 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
-                    >
-                      Remove Item
-                    </button>
-                  )}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         </div>
 
@@ -993,9 +1092,10 @@ function AddTruckModal({
           </button>
           <button
             onClick={handleAdd}
-            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
+            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 disabled:opacity-50"
+            disabled={!formData.truckPlate || !formData.driver || selectedSales.length === 0}
           >
-            Add Truck
+            Create Truck
           </button>
         </div>
       </div>
