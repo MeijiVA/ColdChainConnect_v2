@@ -1,14 +1,18 @@
 import { useEffect, useState } from "react";
+import { NotificationPanel } from "./NotificationPanel";
 
 interface TopbarProps {
   userName: string;
+  onSettingsClick?: () => void;
 }
 
-export function Topbar({ userName }: TopbarProps) {
+export function Topbar({ userName, onSettingsClick }: TopbarProps) {
   const [dateTime, setDateTime] = useState<{
     time: string;
     dayDate: string;
   }>({ time: "", dayDate: "" });
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [unreadCount] = useState(4);
 
   useEffect(() => {
     const updateDateTime = () => {
@@ -47,24 +51,37 @@ export function Topbar({ userName }: TopbarProps) {
         <span className="sm:hidden">Hi, {userName}!</span>
       </div>
 
-      <div className="flex items-center gap-2 md:gap-4">
+      <div className="flex items-center gap-2 md:gap-4 relative">
         <div className="hidden sm:block text-right text-xs text-muted leading-relaxed">
           <strong className="block text-sm text-navy">{dateTime.time}</strong>
           <span className="hidden md:inline">{dateTime.dayDate}</span>
         </div>
 
         {/* Notification button */}
-        <button className="w-8 md:w-9 h-8 md:h-9 rounded-full bg-off-white border border-border flex items-center justify-center cursor-pointer text-sm md:text-base text-muted relative transition-all hover:text-white hover:bg-accent">
+        <button
+          onClick={() => setShowNotifications(!showNotifications)}
+          className="w-8 md:w-9 h-8 md:h-9 rounded-full bg-off-white border border-border flex items-center justify-center cursor-pointer text-sm md:text-base text-muted relative transition-all hover:text-white hover:bg-accent"
+        >
           🔔
-          <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red rounded-full text-2xs flex items-center justify-center text-white font-bold">
-            4
-          </div>
+          {unreadCount > 0 && (
+            <div className="absolute -top-0.5 -right-0.5 w-4 h-4 bg-red rounded-full text-2xs flex items-center justify-center text-white font-bold">
+              {unreadCount}
+            </div>
+          )}
         </button>
 
         {/* Settings button */}
-        <button className="w-8 md:w-9 h-8 md:h-9 rounded-full bg-off-white border border-border flex items-center justify-center cursor-pointer text-sm md:text-base text-muted transition-all hover:text-white hover:bg-accent">
+        <button
+          onClick={onSettingsClick}
+          className="w-8 md:w-9 h-8 md:h-9 rounded-full bg-off-white border border-border flex items-center justify-center cursor-pointer text-sm md:text-base text-muted transition-all hover:text-white hover:bg-accent"
+        >
           ⚙️
         </button>
+
+        {/* Notification Panel */}
+        {showNotifications && (
+          <NotificationPanel onClose={() => setShowNotifications(false)} />
+        )}
       </div>
     </header>
   );

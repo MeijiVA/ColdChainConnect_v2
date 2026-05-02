@@ -14,6 +14,9 @@ import { Sales } from "./pages/Sales";
 import { Customer } from "./pages/Customer";
 import { EmployeeManagement } from "./pages/EmployeeManagement";
 import { Payroll } from "./pages/Payroll";
+import { Settings } from "./pages/Settings";
+import { FinanceLedger } from "./pages/FinanceLedger";
+import { Reports } from "./pages/Reports";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sidebar } from "./components/Sidebar";
@@ -46,52 +49,13 @@ const AppContent = () => {
       case "payroll":
         return <Payroll />;
       case "expenses":
-        return (
-          <PlaceholderPanel
-            title="Expenses & Finance"
-            description="Track operational costs and truck maintenance"
-            icon="🧾"
-            panelId="expenses"
-          />
-        );
+        return <FinanceLedger />;
       case "trucks":
         return <TrucksInTransit />;
       case "reports":
-        return (
-          <PlaceholderPanel
-            title="Reports"
-            description="Generate and export business reports"
-            icon="📑"
-            panelId="reports"
-          />
-        );
-      case "notifications":
-        return (
-          <PlaceholderPanel
-            title="Notifications"
-            description="System alerts and activity feed"
-            icon="🔔"
-            panelId="notifications"
-          />
-        );
-      case "audit":
-        return (
-          <PlaceholderPanel
-            title="Audit Log"
-            description="Complete activity trail — Administrator access only"
-            icon="🕵️"
-            panelId="audit"
-          />
-        );
+        return <Reports />;
       case "settings":
-        return (
-          <PlaceholderPanel
-            title="Settings"
-            description="Profile, security, and system configuration"
-            icon="⚙️"
-            panelId="settings"
-          />
-        );
+        return <Settings />;
       default:
         return <Dashboard />;
     }
@@ -109,7 +73,10 @@ const AppContent = () => {
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen bg-off-white min-w-0">
         {/* Topbar */}
-        <Topbar userName="Mizael Anton" />
+        <Topbar
+          userName="Mizael Anton"
+          onSettingsClick={() => setActivePanel("settings")}
+        />
 
         {/* Panel Content */}
         {renderPanel()}
