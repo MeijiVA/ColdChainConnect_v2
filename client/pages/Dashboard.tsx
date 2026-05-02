@@ -86,6 +86,22 @@ export function Dashboard() {
         </div>
       </div>
 
+      {/* Period Selector */}
+      <div className="flex gap-2 justify-start">
+        {(["daily", "weekly", "monthly", "yearly"] as const).map((p) => (
+          <button
+            key={p}
+            onClick={() => setPeriod(p)}
+            className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              period === p
+                ? "bg-accent-2 text-white"
+                : "bg-white border border-border text-navy hover:bg-off-white"
+            }`}
+          >
+            {p.charAt(0).toUpperCase() + p.slice(1)}
+          </button>
+        ))}
+      </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
@@ -106,18 +122,21 @@ export function Dashboard() {
           />
           <StatCard
             label="Total Sales"
-
+            value={currentPeriodData.totalSales.toString()}
+            subtitle="transactions processed"
             colorIndex={2}
             icon="💳"
             trend="+5"
           />
           <StatCard
             label="Net Revenue"
-
+            value={currentPeriodData.amount}
+            subtitle="total earnings"
+            colorIndex={3}
+            icon="💰"
             isGreen
           />
         </div>
-      </div>
 
       {/* REQ-DASH-008: Alerts Section */}
       <div className="space-y-2">

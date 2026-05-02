@@ -12,7 +12,6 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
     { id: "dashboard", icon: "⬛", label: "Dashboard" },
     { id: "inventory", icon: "📦", label: "Inventory Management" },
     { id: "sales", icon: "💳", label: "Sales Tracking" },
-    { id: "ar", icon: "📋", label: "Accounts Receivable" },
     { id: "customers", icon: "🧑‍🤝‍🧑", label: "Customer Management" },
     { id: "employees", icon: "🪪", label: "Employee Management" },
   ];
