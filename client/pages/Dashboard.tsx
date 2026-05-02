@@ -106,18 +106,21 @@ export function Dashboard() {
           />
           <StatCard
             label="Total Sales"
-
+            value={currentPeriodData.totalSales.toString()}
+            subtitle="transactions processed"
             colorIndex={2}
             icon="💳"
             trend="+5"
           />
           <StatCard
             label="Net Revenue"
-
+            value={currentPeriodData.amount}
+            subtitle="total earnings"
+            colorIndex={3}
+            icon="💰"
             isGreen
           />
         </div>
-      </div>
 
       {/* REQ-DASH-008: Alerts Section */}
       <div className="space-y-2">
