@@ -46,7 +46,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
           Mizael Anton M.
         </div>
         <div className="bg-accent text-white text-xs font-semibold letter-spacing-wider px-3 py-0.5 rounded-full">
-          ASSISTANT
+          Administrator
         </div>
       </div>
 
