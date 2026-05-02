@@ -34,7 +34,6 @@ interface ForecastRecommendation {
 export function Sales() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
-  const [filterMonth, setFilterMonth] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState<SalesTransaction | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -240,16 +239,7 @@ export function Sales() {
       tx.customerId.toLowerCase().includes(searchQuery.toLowerCase()) ||
       tx.customerName.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus = filterStatus === "all" || tx.status === filterStatus;
-
-    // Month filtering
-    let matchesMonth = true;
-    if (filterMonth) {
-      const txDate = new Date(tx.date);
-      const txYearMonth = `${txDate.getFullYear()}-${String(txDate.getMonth() + 1).padStart(2, "0")}`;
-      matchesMonth = txYearMonth === filterMonth;
-    }
-
-    return matchesSearch && matchesStatus && matchesMonth;
+    return matchesSearch && matchesStatus;
   });
 
   // Pagination
@@ -514,15 +504,6 @@ export function Sales() {
           <option value="paid">Paid</option>
           <option value="unpaid">Unpaid</option>
         </select>
-        <input
-          type="month"
-          value={filterMonth}
-          onChange={(e) => {
-            setFilterMonth(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="px-3 py-2 bg-navy-mid border border-border text-white rounded-lg text-sm outline-none cursor-pointer"
-        />
       </div>
 
       {/* Transactions Table */}

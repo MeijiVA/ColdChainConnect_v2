@@ -1,12 +1,5 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { 
-  LayoutDashboard, 
-  Package, 
-  Truck, 
-  Users, 
-  Settings 
-} from "lucide-react";
 
 interface SidebarProps {
   activePanel: string;
@@ -18,8 +11,8 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   const navItems = [
     { id: "dashboard", icon: "⬛", label: "Dashboard" },
     { id: "inventory", icon: "📦", label: "Inventory Management" },
-    { id: "sales", icon: "💳", label: "Sales Management" },
-    { id: "trucks", icon: "🚚", label: "Trucks in Transit" },
+    { id: "sales", icon: "💳", label: "Sales Tracking" },
+    { id: "ar", icon: "📋", label: "Accounts Receivable" },
     { id: "customers", icon: "🧑‍🤝‍🧑", label: "Customer Management" },
     { id: "employees", icon: "🪪", label: "Employee Management" },
   ];
@@ -27,8 +20,10 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   const additionalItems = [
     { id: "payroll", icon: "💰", label: "Payroll" },
     { id: "expenses", icon: "🧾", label: "Expenses & Finance" },
+    { id: "trucks", icon: "🚚", label: "Trucks in Transit" },
     { id: "reports", icon: "📑", label: "Reports" },
   ];
+  // Note: QR Tracking and AI Forecasting have been integrated into other modules
 
   const systemItems = [
     { id: "notifications", icon: "🔔", label: "Notifications" },

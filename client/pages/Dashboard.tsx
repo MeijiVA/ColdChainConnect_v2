@@ -86,23 +86,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* REQ-DASH-001: Central Display - KPI Stat Cards with Period Filter */}
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {(["daily", "weekly", "monthly", "yearly"] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-lg text-xs font-semibold font-barlow-cond letter-spacing-tight transition-all ${
-                period === p
-                  ? "bg-accent-2 text-white"
-                  : "bg-off-white text-muted hover:bg-navy/10"
-              }`}
-            >
-              {p.charAt(0).toUpperCase() + p.slice(1)}
-            </button>
-          ))}
-        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             label="Total Products"
@@ -122,19 +106,14 @@ export function Dashboard() {
           />
           <StatCard
             label="Total Sales"
-            value={currentPeriodData.totalSales.toString()}
-            subtitle={`Transactions ${period}`}
+
             colorIndex={2}
             icon="💳"
             trend="+5"
           />
           <StatCard
             label="Net Revenue"
-            value={`₱${currentPeriodData.netRevenue.toLocaleString()}`}
-            subtitle={`Revenue this ${period}`}
-            colorIndex={3}
-            icon="💰"
-            trend="+15%"
+
             isGreen
           />
         </div>
