@@ -10,10 +10,8 @@ import { useState } from "react";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Inventory } from "./pages/Inventory";
-import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sales } from "./pages/Sales";
-import { Payroll } from "./pages/Payroll";
-import { Customer } from "./pages/Customer";
+import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
@@ -39,7 +37,32 @@ const AppContent = () => {
       case "sales":
         return <Sales />;
       case "customers":
-        return <Customer />;
+        return (
+          <PlaceholderPanel
+            title="Customer Management"
+            description="All registered retail partners and sari-sari stores"
+            icon="🧑‍🤝‍🧑"
+            panelId="customers"
+          />
+       );
+      case "ar":
+        return (
+          <PlaceholderPanel
+            title="Accounts Receivable"
+            description="Monitor credit balances and aging reports"
+            icon="📋"
+            panelId="ar"
+          />
+        );
+      case "customers":
+        return (
+          <PlaceholderPanel
+            title="Customer Management"
+            description="All registered retail partners and sari-sari stores"
+            icon="🧑‍🤝‍🧑"
+            panelId="customers"
+          />
+        );
       case "employees":
         return (
           <PlaceholderPanel
@@ -50,7 +73,14 @@ const AppContent = () => {
           />
         );
       case "payroll":
-        return <Payroll />;
+        return (
+          <PlaceholderPanel
+            title="Payroll"
+            description="Employee salaries & agent commission management"
+            icon="💰"
+            panelId="payroll"
+          />
+        );
       case "expenses":
         return (
           <PlaceholderPanel

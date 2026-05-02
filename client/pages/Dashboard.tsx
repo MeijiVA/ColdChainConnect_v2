@@ -75,41 +75,59 @@ export function Dashboard() {
         </div>
       </div>
 
-      {/* REQ-DASH-001: Central Display - KPI Stat Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard
-          label="Total Products"
-          value={dashboardData.totalProducts.toString()}
-          subtitle="Active SKUs in inventory"
-          colorIndex={0}
-          icon="📦"
-          trend="+2"
-        />
-        <StatCard
-          label="Total Customers"
-          value={dashboardData.totalCustomers.toString()}
-          subtitle="Registered retail partners"
-          colorIndex={1}
-          icon="🧑‍🤝‍🧑"
-          trend="+1"
-        />
-        <StatCard
-          label="Total Sales"
-          value={dashboardData.totalSales.toString()}
-          subtitle="Transactions this period"
-          colorIndex={2}
-          icon="💳"
-          trend="+5"
-        />
-        <StatCard
-          label="Profits Generated"
-          value={`₱${dashboardData.profitsGenerated.toLocaleString()}`}
-          subtitle="Net revenue this month"
-          colorIndex={3}
-          icon="💰"
-          trend="+15%"
-          isGreen
-        />
+      {/* REQ-DASH-001: Central Display - KPI Stat Cards with Time Selector */}
+      <div className="space-y-4">
+        <div className="flex gap-2 flex-wrap">
+          {(["daily", "weekly", "monthly"] as const).map((period) => (
+            <button
+              key={period}
+              onClick={() => setSalesPeriod(period)}
+              className={`px-3 py-2 rounded-lg text-xs font-semibold font-barlow-cond letter-spacing-tight transition-all ${
+                salesPeriod === period
+                  ? "bg-accent-2 text-white"
+                  : "bg-white border border-border text-muted hover:bg-off-white"
+              }`}
+            >
+              {period.charAt(0).toUpperCase() + period.slice(1)}
+            </button>
+          ))}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            label="Total Products"
+            value={dashboardData.totalProducts.toString()}
+            subtitle="Active SKUs in inventory"
+            colorIndex={0}
+            icon="📦"
+            trend="+2"
+          />
+          <StatCard
+            label="Total Customers"
+            value={dashboardData.totalCustomers.toString()}
+            subtitle="Registered retail partners"
+            colorIndex={1}
+            icon="🧑‍🤝‍🧑"
+            trend="+1"
+          />
+          <StatCard
+            label="Total Sales"
+            value={currentSalesSummary.transactions.toString()}
+            subtitle={`${currentSalesSummary.transactions} transactions`}
+            colorIndex={2}
+            icon="💳"
+            trend="+5"
+          />
+          <StatCard
+            label="Net Revenue"
+            value={currentSalesSummary.amount}
+            subtitle="Net revenue this period"
+            colorIndex={3}
+            icon="💰"
+            trend={currentSalesSummary.trend}
+            isGreen
+          />
+        </div>
       </div>
 
       {/* REQ-DASH-008: Alerts Section */}
