@@ -16,6 +16,7 @@ import { EmployeeManagement } from "./pages/EmployeeManagement";
 import { Payroll } from "./pages/Payroll";
 import { Settings } from "./pages/Settings";
 import { FinanceLedger } from "./pages/FinanceLedger";
+import { Reports } from "./pages/Reports";
 import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sidebar } from "./components/Sidebar";
@@ -52,14 +53,7 @@ const AppContent = () => {
       case "trucks":
         return <TrucksInTransit />;
       case "reports":
-        return (
-          <PlaceholderPanel
-            title="Reports"
-            description="Generate and export business reports"
-            icon="📑"
-            panelId="reports"
-          />
-        );
+        return <Reports />;
       case "settings":
         return <Settings />;
       default:
