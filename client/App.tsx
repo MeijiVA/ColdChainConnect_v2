@@ -6,7 +6,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useState, useCallback } from "react";
+import { useState } from "react";
 import { Login } from "./pages/Login";
 import { Dashboard } from "./pages/Dashboard";
 import { Inventory } from "./pages/Inventory";
@@ -17,7 +17,6 @@ import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import NotFound from "./pages/NotFound";
-import { InventoryProvider } from "./contexts/InventoryContext";
 
 
 const queryClient = new QueryClient();
@@ -25,14 +24,6 @@ const queryClient = new QueryClient();
 const AppContent = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [activePanel, setActivePanel] = useState("dashboard");
-  const [inventoryData, setInventoryData] = useState<Record<string, { id: string; quantity: number }>>({});
-
-  const handleMissingItem = useCallback((sku: string, quantity: number) => {
-    setInventoryData((prev) => ({
-      ...prev,
-      [sku]: { id: sku, quantity },
-    }));
-  }, []);
 
   if (!isLoggedIn) {
     return <Login onLogin={() => setIsLoggedIn(true)} />;
@@ -43,7 +34,7 @@ const AppContent = () => {
       case "dashboard":
         return <Dashboard />;
       case "inventory":
-        return <Inventory missingItemsData={inventoryData} />;
+        return <Inventory />;
       case "sales":
         return <Sales />;
       case "customers":
@@ -144,25 +135,23 @@ const AppContent = () => {
   };
 
   return (
-    <InventoryProvider onMissingItem={handleMissingItem}>
-      <div className="flex min-h-screen">
-        {/* Sidebar */}
-        <Sidebar
-          activePanel={activePanel}
-          onPanelChange={setActivePanel}
-          onLogout={() => setIsLoggedIn(false)}
-        />
+    <div className="flex min-h-screen">
+      {/* Sidebar */}
+      <Sidebar
+        activePanel={activePanel}
+        onPanelChange={setActivePanel}
+        onLogout={() => setIsLoggedIn(false)}
+      />
 
-        {/* Main Content Area */}
-        <div className="flex-1 flex flex-col min-h-screen bg-off-white min-w-0">
-          {/* Topbar */}
-          <Topbar userName="Mizael Anton" />
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col min-h-screen bg-off-white min-w-0">
+        {/* Topbar */}
+        <Topbar userName="Mizael Anton" />
 
-          {/* Panel Content */}
-          {renderPanel()}
-        </div>
+        {/* Panel Content */}
+        {renderPanel()}
       </div>
-    </InventoryProvider>
+    </div>
   );
 };
 

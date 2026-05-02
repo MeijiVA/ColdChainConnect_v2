@@ -1,5 +1,4 @@
 import { useState, useRef } from "react";
-import { useInventory } from "@/contexts/InventoryContext";
 // QR Code scanning will use browser's camera API and manual entry
 
 // Truck in transit interface
@@ -25,11 +24,10 @@ interface DeliveryItem {
   description: string;
   qrCode: string;
   quantity: number;
-  status: "in_storage" | "being_delivered" | "arrived" | "missing";
+  status: "in_storage" | "being_delivered" | "arrived";
 }
 
 export function TrucksInTransit() {
-  const { updateInventoryForMissingItem } = useInventory();
   const [trucks, setTrucks] = useState<TruckDelivery[]>([
     {
       id: "TRK-001",
@@ -115,51 +113,9 @@ export function TrucksInTransit() {
 
   const [selectedTruck, setSelectedTruck] = useState<TruckDelivery | null>(null);
   const [showQRScanner, setShowQRScanner] = useState(false);
-  const [showAddTruck, setShowAddTruck] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [scannedQR, setScannedQR] = useState<string>("");
   const [cameraActive, setCameraActive] = useState(false);
-
-  // Update item status and handle inventory when marking as missing
-  const updateItemStatus = (
-    truckId: string,
-    itemId: string,
-    newStatus: "in_storage" | "being_delivered" | "arrived" | "missing"
-  ) => {
-    const updatedTrucks = trucks.map((truck) => {
-      if (truck.id === truckId) {
-        const updatedItems = truck.items.map((item) => {
-          if (item.id === itemId) {
-            const oldStatus = item.status;
-            // If changing to missing, update inventory
-            if (newStatus === "missing" && oldStatus !== "missing") {
-              updateInventoryForMissingItem(item.sku, item.quantity);
-            }
-            return { ...item, status: newStatus };
-          }
-          return item;
-        });
-        return { ...truck, items: updatedItems };
-      }
-      return truck;
-    });
-
-    setTrucks(updatedTrucks);
-    setSelectedTruck(
-      updatedTrucks.find((t) => t.id === truckId) || null
-    );
-  };
-
-  // Add new truck
-  const addNewTruck = (truckData: TruckDelivery) => {
-    const newTruck: TruckDelivery = {
-      ...truckData,
-      id: `TRK-${(trucks.length + 1).toString().padStart(3, "0")}`,
-      lastUpdate: new Date().toLocaleString("en-PH"),
-    };
-    setTrucks([...trucks, newTruck]);
-    setShowAddTruck(false);
-  };
 
   // Open camera for QR scanning
   const openCamera = async () => {
@@ -234,16 +190,8 @@ export function TrucksInTransit() {
             Monitor active deliveries and track shipments in real-time
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row items-end sm:items-center gap-3">
-          <button
-            onClick={() => setShowAddTruck(true)}
-            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            ＋ Add Truck
-          </button>
-          <div className="text-xs text-muted">
-            Active Deliveries: {trucks.filter((t) => t.status === "being_delivered").length}
-          </div>
+        <div className="text-xs text-muted">
+          Active Deliveries: {trucks.filter((t) => t.status === "being_delivered").length}
         </div>
       </div>
 
@@ -299,13 +247,15 @@ export function TrucksInTransit() {
                   <p className="text-navy font-semibold">{truck.destination}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                <span>🎯</span>
-                <div>
-                  <p className="text-muted">Destination:</p>
-                  <p className="text-navy font-semibold">{truck.destination}</p>
+              {truck.currentLocation && (
+                <div className="flex items-center gap-2">
+                  <span>📌</span>
+                  <div>
+                    <p className="text-muted">Current:</p>
+                    <p className="text-navy font-semibold">{truck.currentLocation}</p>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {/* Items Count */}
@@ -392,9 +342,6 @@ export function TrucksInTransit() {
                     <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                       Status
                     </th>
-                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                      Update Status
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -414,24 +361,6 @@ export function TrucksInTransit() {
                       </td>
                       <td className="px-3 py-3">
                         <ItemStatusBadge status={item.status} />
-                      </td>
-                      <td className="px-3 py-3">
-                        <select
-                          value={item.status}
-                          onChange={(e) =>
-                            updateItemStatus(
-                              selectedTruck.id,
-                              item.id,
-                              e.target.value as "in_storage" | "being_delivered" | "arrived" | "missing"
-                            )
-                          }
-                          className="px-2 py-1 border border-border rounded text-xs font-semibold focus:outline-none focus:border-accent-2 bg-white cursor-pointer"
-                        >
-                          <option value="in_storage">In Storage</option>
-                          <option value="being_delivered">In Transit</option>
-                          <option value="arrived">Delivered</option>
-                          <option value="missing">Missing</option>
-                        </select>
                       </td>
                     </tr>
                   ))}
@@ -456,14 +385,6 @@ export function TrucksInTransit() {
           closeCamera={closeCamera}
           scannedQR={scannedQR}
           availableQRs={selectedTruck?.items.map((item) => item.qrCode) || []}
-        />
-      )}
-
-      {/* Add Truck Modal */}
-      {showAddTruck && (
-        <AddTruckModal
-          onClose={() => setShowAddTruck(false)}
-          onAdd={addNewTruck}
         />
       )}
     </div>
@@ -501,20 +422,18 @@ function StatusBadge({
 function ItemStatusBadge({
   status,
 }: {
-  status: "in_storage" | "being_delivered" | "arrived" | "missing";
+  status: "in_storage" | "being_delivered" | "arrived";
 }) {
   const colors = {
     in_storage: "badge-blue",
     being_delivered: "badge-gold",
     arrived: "badge-green",
-    missing: "badge-red",
   };
 
   const labels = {
     in_storage: "In Storage",
     being_delivered: "Delivering",
     arrived: "Arrived",
-    missing: "Missing",
   };
 
   return (
@@ -670,357 +589,6 @@ function QRScannerModal({
         >
           Close
         </button>
-      </div>
-    </div>
-  );
-}
-
-// Add Truck Modal
-function AddTruckModal({
-  onClose,
-  onAdd,
-}: {
-  onClose: () => void;
-  onAdd: (truck: TruckDelivery) => void;
-}) {
-  const [formData, setFormData] = useState({
-    truckPlate: "",
-    driver: "",
-    driverId: "",
-    origin: "",
-    destination: "",
-    departureTime: "",
-    estimatedArrival: "",
-    status: "in_storage" as const,
-    progress: 0,
-    currentLocation: "",
-    items: [] as DeliveryItem[],
-  });
-
-  const [newItem, setNewItem] = useState({
-    sku: "",
-    description: "",
-    qrCode: "",
-    quantity: 0,
-  });
-
-  const handleAddItem = () => {
-    if (!newItem.sku || !newItem.description || !newItem.qrCode || newItem.quantity <= 0) {
-      alert("Please fill in all item fields");
-      return;
-    }
-
-    const item: DeliveryItem = {
-      id: Date.now().toString(),
-      sku: newItem.sku,
-      description: newItem.description,
-      qrCode: newItem.qrCode,
-      quantity: newItem.quantity,
-      status: "in_storage",
-    };
-
-    setFormData({
-      ...formData,
-      items: [...formData.items, item],
-    });
-
-    setNewItem({
-      sku: "",
-      description: "",
-      qrCode: "",
-      quantity: 0,
-    });
-  };
-
-  const handleRemoveItem = (itemId: string) => {
-    setFormData({
-      ...formData,
-      items: formData.items.filter((item) => item.id !== itemId),
-    });
-  };
-
-  const handleSubmit = () => {
-    if (
-      !formData.truckPlate ||
-      !formData.driver ||
-      !formData.driverId ||
-      !formData.origin ||
-      !formData.destination ||
-      !formData.departureTime ||
-      !formData.estimatedArrival ||
-      formData.items.length === 0
-    ) {
-      alert("Please fill in all required fields and add at least one item");
-      return;
-    }
-
-    onAdd({
-      id: "", // Will be generated in parent
-      ...formData,
-      lastUpdate: new Date().toLocaleString("en-PH"),
-    } as TruckDelivery);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl border border-border max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-        <div className="sticky top-0 bg-navy-mid px-6 py-4 flex items-center justify-between border-b border-border">
-          <h2 className="font-rajdhani text-lg font-bold text-white">Add New Truck</h2>
-          <button
-            onClick={onClose}
-            className="text-white hover:opacity-70 text-2xl"
-          >
-            ×
-          </button>
-        </div>
-
-        <div className="p-6 space-y-6">
-          {/* Truck Information */}
-          <div>
-            <h3 className="font-rajdhani text-lg font-bold text-navy mb-4">
-              Truck Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Truck Plate *
-                </label>
-                <input
-                  type="text"
-                  value={formData.truckPlate}
-                  onChange={(e) =>
-                    setFormData({ ...formData, truckPlate: e.target.value })
-                  }
-                  placeholder="e.g., ABC 1234"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Driver Name *
-                </label>
-                <input
-                  type="text"
-                  value={formData.driver}
-                  onChange={(e) =>
-                    setFormData({ ...formData, driver: e.target.value })
-                  }
-                  placeholder="e.g., Juan dela Cruz"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Driver ID *
-                </label>
-                <input
-                  type="text"
-                  value={formData.driverId}
-                  onChange={(e) =>
-                    setFormData({ ...formData, driverId: e.target.value })
-                  }
-                  placeholder="e.g., SLS-0001"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Current Location
-                </label>
-                <input
-                  type="text"
-                  value={formData.currentLocation}
-                  onChange={(e) =>
-                    setFormData({ ...formData, currentLocation: e.target.value })
-                  }
-                  placeholder="e.g., San Fernando, Pampanga"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Route Information */}
-          <div>
-            <h3 className="font-rajdhani text-lg font-bold text-navy mb-4">
-              Route Information
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Origin *
-                </label>
-                <input
-                  type="text"
-                  value={formData.origin}
-                  onChange={(e) =>
-                    setFormData({ ...formData, origin: e.target.value })
-                  }
-                  placeholder="e.g., ACDP Warehouse, Pampanga"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Destination *
-                </label>
-                <input
-                  type="text"
-                  value={formData.destination}
-                  onChange={(e) =>
-                    setFormData({ ...formData, destination: e.target.value })
-                  }
-                  placeholder="e.g., Makati Retail Partners"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Departure Time *
-                </label>
-                <input
-                  type="time"
-                  value={formData.departureTime}
-                  onChange={(e) =>
-                    setFormData({ ...formData, departureTime: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Est. Arrival Time *
-                </label>
-                <input
-                  type="time"
-                  value={formData.estimatedArrival}
-                  onChange={(e) =>
-                    setFormData({ ...formData, estimatedArrival: e.target.value })
-                  }
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Items Section */}
-          <div>
-            <h3 className="font-rajdhani text-lg font-bold text-navy mb-4">
-              Items
-            </h3>
-
-            {/* Add Item Form */}
-            <div className="bg-off-white p-4 rounded-lg mb-4 space-y-3">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-xs font-semibold text-navy mb-1">
-                    SKU *
-                  </label>
-                  <input
-                    type="text"
-                    value={newItem.sku}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, sku: e.target.value })
-                    }
-                    placeholder="e.g., 7700165"
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2 bg-white"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-navy mb-1">
-                    QR Code *
-                  </label>
-                  <input
-                    type="text"
-                    value={newItem.qrCode}
-                    onChange={(e) =>
-                      setNewItem({ ...newItem, qrCode: e.target.value })
-                    }
-                    placeholder="e.g., QR-20260430-001"
-                    className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2 bg-white"
-                  />
-                </div>
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Description *
-                </label>
-                <input
-                  type="text"
-                  value={newItem.description}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, description: e.target.value })
-                  }
-                  placeholder="e.g., FF Bossing Hatdogs KingSize"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2 bg-white"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold text-navy mb-1">
-                  Quantity *
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  value={newItem.quantity}
-                  onChange={(e) =>
-                    setNewItem({ ...newItem, quantity: parseInt(e.target.value) })
-                  }
-                  placeholder="0"
-                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2 bg-white"
-                />
-              </div>
-              <button
-                onClick={handleAddItem}
-                className="w-full px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
-              >
-                + Add Item
-              </button>
-            </div>
-
-            {/* Items List */}
-            {formData.items.length > 0 && (
-              <div className="space-y-2 mb-4">
-                <p className="text-xs font-semibold text-navy">
-                  {formData.items.length} Item{formData.items.length !== 1 ? "s" : ""} Added
-                </p>
-                {formData.items.map((item) => (
-                  <div
-                    key={item.id}
-                    className="bg-white border border-border rounded-lg p-3 flex items-start justify-between"
-                  >
-                    <div className="flex-1 text-sm">
-                      <p className="font-semibold text-navy">{item.sku}</p>
-                      <p className="text-xs text-muted">{item.description}</p>
-                      <p className="text-xs text-muted mt-1">Qty: {item.quantity}</p>
-                    </div>
-                    <button
-                      onClick={() => handleRemoveItem(item.id)}
-                      className="ml-2 px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
-                    >
-                      Remove
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="sticky bottom-0 bg-off-white px-6 py-4 flex justify-end gap-2 border-t border-border">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-border rounded-lg font-semibold text-sm hover:bg-white"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={handleSubmit}
-            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
-          >
-            Create Truck
-          </button>
-        </div>
       </div>
     </div>
   );
