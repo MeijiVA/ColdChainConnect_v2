@@ -158,6 +158,21 @@ export function Dashboard() {
               {period.charAt(0).toUpperCase() + period.slice(1)} breakdown
             </p>
           </div>
+          <div className="flex gap-2">
+            {(["daily", "weekly", "monthly", "yearly"] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+                  period === p
+                    ? "bg-accent-2 text-white"
+                    : "bg-off-white text-navy hover:bg-navy/5"
+                }`}
+              >
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </button>
+            ))}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
