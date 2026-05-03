@@ -374,7 +374,7 @@ export function FinanceLedger() {
               Total Expenses
             </h3>
             <p className="text-3xl font-bold text-navy">
-              ${totalExpenses.toLocaleString()}
+              ₱{totalExpenses.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500 mt-2">
               {expenses.length} entries
@@ -385,7 +385,7 @@ export function FinanceLedger() {
               Operational Costs
             </h3>
             <p className="text-3xl font-bold text-navy">
-              ${totalOperational.toLocaleString()}
+              ₱{totalOperational.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500 mt-2">
               {operationalCosts.length} entries
@@ -396,7 +396,7 @@ export function FinanceLedger() {
               Maintenance Costs
             </h3>
             <p className="text-3xl font-bold text-navy">
-              ${totalMaintenance.toLocaleString()}
+              ₱{totalMaintenance.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500 mt-2">
               {maintenanceRecords.length} records
@@ -514,7 +514,7 @@ export function FinanceLedger() {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-navy mb-2">
-                    Amount ($)
+                    Amount (₱)
                   </label>
                   <Input
                     type="number"
@@ -581,7 +581,7 @@ export function FinanceLedger() {
                           {expense.description}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold text-navy">
-                          ${expense.amount.toFixed(2)}
+                          ₱{expense.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -682,7 +682,7 @@ export function FinanceLedger() {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-navy mb-2">
-                    Amount ($)
+                    Amount (₱)
                   </label>
                   <Input
                     type="number"
@@ -752,7 +752,7 @@ export function FinanceLedger() {
                           {cost.description}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold text-navy">
-                          ${cost.amount.toFixed(2)}
+                          ₱{cost.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -880,7 +880,7 @@ export function FinanceLedger() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-semibold text-navy mb-2">
-                      Cost ($)
+                      Cost (₱)
                     </label>
                     <Input
                       type="number"
@@ -978,7 +978,7 @@ export function FinanceLedger() {
                           {record.service}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold text-navy">
-                          ${record.cost.toFixed(2)}
+                          ₱{record.cost.toFixed(2)}
                         </td>
                         <td className="py-3 px-4 text-gray-700">
                           {record.mileage.toLocaleString()} mi
