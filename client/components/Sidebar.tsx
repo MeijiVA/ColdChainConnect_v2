@@ -95,7 +95,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
       {/* Logout - Fixed at Bottom */}
       <button
         onClick={onLogout}
-        className="w-full px-6 py-3 flex items-center gap-2 text-white font-barlow text-sm font-semibold transition-all bg-transparent hover:bg-white/10 flex-shrink-0 mx-6 mb-6"
+        className="w-full px-6 py-3 flex items-center justify-center gap-2 text-white font-barlow text-sm font-semibold transition-all bg-transparent hover:bg-white/10 flex-shrink-0 mx-6 mb-6"
       >
         <span>⎋</span>
         Log Out
