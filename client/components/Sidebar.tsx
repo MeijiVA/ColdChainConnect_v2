@@ -9,35 +9,34 @@ interface SidebarProps {
 
 export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) {
   const navItems = [
-    { id: "dashboard", icon: "⬛", label: "Dashboard" },
-    { id: "inventory", icon: "📦", label: "Inventory Management" },
-    { id: "sales", icon: "💳", label: "Sales Tracking" },
-    { id: "customers", icon: "🧑‍🤝‍🧑", label: "Customer Management" },
-    { id: "employees", icon: "🪪", label: "Employee Management" },
+    { id: "dashboard", label: "Dashboard" },
+    { id: "inventory", label: "Inventory Management" },
+    { id: "sales", label: "Sales Management" },
+    { id: "customers", label: "Customer Management" },
+    { id: "employees", label: "Employee Management" },
   ];
 
   const additionalItems = [
-    { id: "payroll", icon: "💰", label: "Payroll" },
-    { id: "expenses", icon: "🧾", label: "Expenses & Finance" },
-    { id: "trucks", icon: "🚚", label: "Trucks in Transit" },
-    { id: "reports", icon: "📑", label: "Reports" },
+    { id: "payroll", label: "Payroll" },
+    { id: "expenses", label: "Expenses & Finance" },
+    { id: "trucks", label: "Trucks in Transit" },
+    { id: "reports", label: "Reports" },
   ];
-  // Note: QR Tracking and AI Forecasting have been integrated into other modules
 
   const systemItems: typeof additionalItems = [];
 
   return (
-    <nav className="hidden md:flex w-56 bg-navy text-white flex-col items-center py-6 px-0 gap-0 flex-shrink-0 min-h-screen sticky top-0 h-screen overflow-y-auto">
+    <nav className="hidden md:flex w-72 bg-navy text-white flex-col items-center py-8 px-6 gap-0 flex-shrink-0 min-h-screen sticky top-0 h-screen overflow-y-auto">
       {/* Logo */}
-      <div className="font-rajdhani text-2xl font-bold letter-spacing-wider text-white px-4 py-4">
+      <div className="font-rajdhani text-3xl font-bold letter-spacing-wider text-white mb-8">
         ACDP
       </div>
 
       {/* Profile Section */}
-      <div className="flex flex-col items-center gap-2 px-4 pb-5 border-b border-border w-full">
+      <div className="flex flex-col items-center gap-3 pb-8 border-b border-white/20 w-full mb-4">
         <button
           onClick={() => onPanelChange("settings")}
-          className="w-16 h-16 rounded-full bg-gradient-to-br from-accent-2 to-navy-light flex items-center justify-center text-2xl font-bold border-2 border-accent-2 hover:border-gold hover:shadow-lg transition-all cursor-pointer"
+          className="w-20 h-20 rounded-full bg-gradient-to-br from-accent-2 to-navy-light flex items-center justify-center text-3xl font-bold border-2 border-accent-2 hover:border-gold hover:shadow-lg transition-all cursor-pointer"
           title="Go to Settings"
         >
           👤
@@ -45,86 +44,70 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
         <div className="font-rajdhani text-sm font-semibold text-center text-white">
           Mizael Anton M.
         </div>
-        <div className="bg-accent text-white text-xs font-semibold letter-spacing-wider px-3 py-0.5 rounded-full">
+        <div className="bg-accent text-white text-xs font-semibold letter-spacing-wider px-4 py-1 rounded-full">
           Administrator
         </div>
       </div>
 
       {/* Navigation */}
-      <div className="w-full flex-1 flex flex-col py-2">
+      <div className="w-full flex-1 flex flex-col gap-3">
         {/* Main Nav Items */}
-        <div className="flex flex-col gap-0">
-          {navItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onPanelChange(item.id)}
-              className={`flex items-center gap-2.5 w-full px-5 py-2.5 font-barlow-cond text-sm font-semibold letter-spacing-tight transition-all border-l-3 border-l-transparent ${
-                activePanel === item.id
-                  ? "text-white bg-accent border-l-gold"
-                  : "text-muted hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <span className="text-base w-5 text-center flex-shrink-0">
-                {item.icon}
-              </span>
-              {item.label}
-            </button>
-          ))}
-        </div>
+        {navItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onPanelChange(item.id)}
+            className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
+              activePanel === item.id
+                ? "text-white bg-accent shadow-lg"
+                : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
 
         {/* Divider */}
-        <div className="h-px bg-border mx-4 my-2"></div>
+        <div className="h-px bg-white/20 my-2"></div>
 
         {/* Additional Items */}
-        <div className="flex flex-col gap-0">
-          {additionalItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onPanelChange(item.id)}
-              className={`flex items-center gap-2.5 w-full px-5 py-2.5 font-barlow-cond text-sm font-semibold letter-spacing-tight transition-all border-l-3 border-l-transparent ${
-                activePanel === item.id
-                  ? "text-white bg-accent border-l-gold"
-                  : "text-muted hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <span className="text-base w-5 text-center flex-shrink-0">
-                {item.icon}
-              </span>
-              {item.label}
-            </button>
-          ))}
-        </div>
+        {additionalItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onPanelChange(item.id)}
+            className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
+              activePanel === item.id
+                ? "text-white bg-accent shadow-lg"
+                : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
 
         {/* Divider */}
-        <div className="h-px bg-border mx-4 my-2"></div>
+        <div className="h-px bg-white/20 my-2"></div>
 
         {/* System Items */}
-        <div className="flex flex-col gap-0">
-          {systemItems.map((item) => (
-            <button
-              key={item.id}
-              onClick={() => onPanelChange(item.id)}
-              className={`flex items-center gap-2.5 w-full px-5 py-2.5 font-barlow-cond text-sm font-semibold letter-spacing-tight transition-all border-l-3 border-l-transparent ${
-                activePanel === item.id
-                  ? "text-white bg-accent border-l-gold"
-                  : "text-muted hover:text-white hover:bg-white/5"
-              }`}
-            >
-              <span className="text-base w-5 text-center flex-shrink-0">
-                {item.icon}
-              </span>
-              {item.label}
-            </button>
-          ))}
-        </div>
+        {systemItems.map((item) => (
+          <button
+            key={item.id}
+            onClick={() => onPanelChange(item.id)}
+            className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
+              activePanel === item.id
+                ? "text-white bg-accent shadow-lg"
+                : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
+            }`}
+          >
+            {item.label}
+          </button>
+        ))}
       </div>
 
       {/* Logout */}
       <button
         onClick={onLogout}
-        className="mt-auto w-full px-5 py-4 flex items-center gap-2.5 text-muted font-barlow-cond text-sm font-semibold transition-colors border-t border-border hover:text-red"
+        className="w-full px-6 py-3.5 flex items-center justify-center rounded-full text-white/70 font-barlow text-sm font-semibold transition-all bg-white/10 hover:bg-white/20 hover:text-white border-t border-white/20 mt-auto"
       >
-        <span>⎋</span>
         Log Out
       </button>
     </nav>
