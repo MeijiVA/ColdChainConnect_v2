@@ -53,7 +53,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
             onClick={() => onPanelChange(item.id)}
             className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
               activePanel === item.id
-                ? "text-white bg-accent shadow-lg"
+                ? "text-white bg-gradient-to-r from-accent-2 to-accent shadow-lg"
                 : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
             }`}
           >
@@ -68,7 +68,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
             onClick={() => onPanelChange(item.id)}
             className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
               activePanel === item.id
-                ? "text-white bg-accent shadow-lg"
+                ? "text-white bg-gradient-to-r from-accent-2 to-accent shadow-lg"
                 : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
             }`}
           >
@@ -83,7 +83,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
             onClick={() => onPanelChange(item.id)}
             className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
               activePanel === item.id
-                ? "text-white bg-accent shadow-lg"
+                ? "text-white bg-gradient-to-r from-accent-2 to-accent shadow-lg"
                 : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
             }`}
           >
