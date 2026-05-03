@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 
-type TabType = "expenses" | "operations" | "maintenance";
+type TabType = "expenses" | "operations" | "maintenance" | "receivables";
 
 interface Expense {
   id: string;
@@ -34,6 +34,17 @@ interface MaintenanceRecord {
   mileage: number;
   nextServiceDue: string;
   status: "completed" | "scheduled" | "pending";
+}
+
+interface AccountsReceivable {
+  id: string;
+  salesId: string;
+  customerId: string;
+  customerName: string;
+  date: string;
+  amount: number;
+  status: "paid" | "unpaid";
+  dueDate: string;
 }
 
 // Mock data
@@ -146,6 +157,49 @@ const mockMaintenanceRecords: MaintenanceRecord[] = [
   },
 ];
 
+const mockAccountsReceivable: AccountsReceivable[] = [
+  {
+    id: "1",
+    salesId: "SLS-001",
+    customerId: "CUST-001",
+    customerName: "Restaurant ABC",
+    date: "2024-01-15",
+    amount: 4500,
+    status: "paid",
+    dueDate: "2024-01-22",
+  },
+  {
+    id: "2",
+    salesId: "SLS-002",
+    customerId: "CUST-002",
+    customerName: "Cafe XYZ",
+    date: "2024-01-14",
+    amount: 2800,
+    status: "unpaid",
+    dueDate: "2024-01-21",
+  },
+  {
+    id: "3",
+    salesId: "SLS-003",
+    customerId: "CUST-003",
+    customerName: "Supermarket DEF",
+    date: "2024-01-13",
+    amount: 6200,
+    status: "unpaid",
+    dueDate: "2024-01-20",
+  },
+  {
+    id: "4",
+    salesId: "SLS-004",
+    customerId: "CUST-001",
+    customerName: "Restaurant ABC",
+    date: "2024-01-12",
+    amount: 3500,
+    status: "paid",
+    dueDate: "2024-01-19",
+  },
+];
+
 export function FinanceLedger() {
   const [activeTab, setActiveTab] = useState<TabType>("expenses");
   const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
@@ -155,6 +209,9 @@ export function FinanceLedger() {
   const [maintenanceRecords, setMaintenanceRecords] = useState<
     MaintenanceRecord[]
   >(mockMaintenanceRecords);
+  const [accountsReceivable, setAccountsReceivable] = useState<
+    AccountsReceivable[]
+  >(mockAccountsReceivable);
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -352,6 +409,18 @@ export function FinanceLedger() {
     }
   };
 
+  const handleUpdateReceivableStatus = (id: string, newStatus: "paid" | "unpaid") => {
+    setAccountsReceivable(
+      accountsReceivable.map((ar) =>
+        ar.id === id ? { ...ar, status: newStatus } : ar
+      )
+    );
+    toast({
+      title: "Success",
+      description: `Payment status updated to ${newStatus}.`,
+    });
+  };
+
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalOperational = operationalCosts.reduce((sum, c) => sum + c.amount, 0);
   const totalMaintenance = maintenanceRecords.reduce((sum, r) => sum + r.cost, 0);
@@ -363,7 +432,7 @@ export function FinanceLedger() {
         <div className="mb-6">
           <h1 className="text-3xl font-bold text-navy mb-2">Finance Ledger</h1>
           <p className="text-gray-600">
-            Track expenses, operational costs, and maintenance records
+            Track expenses, operational costs, maintenance records, and accounts receivable
           </p>
         </div>
 
@@ -374,7 +443,7 @@ export function FinanceLedger() {
               Total Expenses
             </h3>
             <p className="text-3xl font-bold text-navy">
-              ${totalExpenses.toLocaleString()}
+              ₱{totalExpenses.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500 mt-2">
               {expenses.length} entries
@@ -385,7 +454,7 @@ export function FinanceLedger() {
               Operational Costs
             </h3>
             <p className="text-3xl font-bold text-navy">
-              ${totalOperational.toLocaleString()}
+              ₱{totalOperational.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500 mt-2">
               {operationalCosts.length} entries
@@ -396,7 +465,7 @@ export function FinanceLedger() {
               Maintenance Costs
             </h3>
             <p className="text-3xl font-bold text-navy">
-              ${totalMaintenance.toLocaleString()}
+              ₱{totalMaintenance.toLocaleString()}
             </p>
             <p className="text-xs text-gray-500 mt-2">
               {maintenanceRecords.length} records
@@ -435,6 +504,16 @@ export function FinanceLedger() {
             }`}
           >
             Maintenance Records
+          </button>
+          <button
+            onClick={() => setActiveTab("receivables")}
+            className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+              activeTab === "receivables"
+                ? "border-accent text-accent"
+                : "border-transparent text-muted hover:text-navy"
+            }`}
+          >
+            Accounts Receivable
           </button>
         </div>
 
@@ -514,7 +593,7 @@ export function FinanceLedger() {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-navy mb-2">
-                    Amount ($)
+                    Amount (₱)
                   </label>
                   <Input
                     type="number"
@@ -581,7 +660,7 @@ export function FinanceLedger() {
                           {expense.description}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold text-navy">
-                          ${expense.amount.toFixed(2)}
+                          ₱{expense.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -682,7 +761,7 @@ export function FinanceLedger() {
                 </div>
                 <div className="mb-4">
                   <label className="block text-sm font-semibold text-navy mb-2">
-                    Amount ($)
+                    Amount (₱)
                   </label>
                   <Input
                     type="number"
@@ -752,7 +831,7 @@ export function FinanceLedger() {
                           {cost.description}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold text-navy">
-                          ${cost.amount.toFixed(2)}
+                          ₱{cost.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -880,7 +959,7 @@ export function FinanceLedger() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
                     <label className="block text-sm font-semibold text-navy mb-2">
-                      Cost ($)
+                      Cost (₱)
                     </label>
                     <Input
                       type="number"
@@ -978,7 +1057,7 @@ export function FinanceLedger() {
                           {record.service}
                         </td>
                         <td className="py-3 px-4 text-right font-semibold text-navy">
-                          ${record.cost.toFixed(2)}
+                          ₱{record.cost.toFixed(2)}
                         </td>
                         <td className="py-3 px-4 text-gray-700">
                           {record.mileage.toLocaleString()} mi
@@ -995,6 +1074,91 @@ export function FinanceLedger() {
                             {record.status.charAt(0).toUpperCase() +
                               record.status.slice(1)}
                           </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === "receivables" && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-navy">
+                Accounts Receivable
+              </h2>
+            </div>
+
+            <Card className="overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-off-white">
+                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                        Sales ID
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                        Customer ID
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                        Customer Name
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                        Date
+                      </th>
+                      <th className="text-right py-3 px-4 font-semibold text-navy">
+                        Amount
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                        Due Date
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accountsReceivable.map((ar) => (
+                      <tr
+                        key={ar.id}
+                        className="border-b border-border hover:bg-off-white"
+                      >
+                        <td className="py-3 px-4 text-navy font-semibold">
+                          {ar.salesId}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {ar.customerId}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {ar.customerName}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {ar.date}
+                        </td>
+                        <td className="py-3 px-4 text-right font-semibold text-navy">
+                          ₱{ar.amount.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-gray-700">
+                          {ar.dueDate}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <select
+                            value={ar.status}
+                            onChange={(e) =>
+                              handleUpdateReceivableStatus(ar.id, e.target.value as "paid" | "unpaid")
+                            }
+                            className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border-none cursor-pointer ${
+                              ar.status === "paid"
+                                ? "bg-green-100 text-green-800"
+                                : "bg-yellow-100 text-yellow-800"
+                            }`}
+                          >
+                            <option value="paid">Paid</option>
+                            <option value="unpaid">Unpaid</option>
+                          </select>
                         </td>
                       </tr>
                     ))}
