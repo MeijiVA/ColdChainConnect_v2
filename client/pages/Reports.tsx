@@ -374,7 +374,7 @@ export function Reports() {
                       <div>
                         <p className="text-xs text-gray-600">Total Revenue</p>
                         <p className="font-semibold text-navy">
-                          ${report.totalRevenue.toLocaleString()}
+                          ₱{report.totalRevenue.toLocaleString()}
                         </p>
                       </div>
                       <div>
@@ -386,7 +386,7 @@ export function Reports() {
                       <div>
                         <p className="text-xs text-gray-600">Avg Transaction</p>
                         <p className="font-semibold text-navy">
-                          ${report.averageTransaction.toFixed(2)}
+                          ₱{report.averageTransaction.toFixed(2)}
                         </p>
                       </div>
                       <div>
@@ -481,7 +481,7 @@ export function Reports() {
                           {item.expiryDate}
                         </td>
                         <td className="py-3 px-4 text-right text-gray-700 font-semibold">
-                          ${item.value.toLocaleString()}
+                          ₱{item.value.toLocaleString()}
                         </td>
                         <td className="py-3 px-4">
                           <span
@@ -565,7 +565,7 @@ export function Reports() {
                           {customer.totalPurchases}
                         </td>
                         <td className="py-3 px-4 text-right text-gray-700 font-semibold">
-                          ${customer.totalSpent.toLocaleString()}
+                          ₱{customer.totalSpent.toLocaleString()}
                         </td>
                         <td className="py-3 px-4 text-gray-700">
                           {customer.lastPurchaseDate}
@@ -642,7 +642,7 @@ export function Reports() {
                           {supplier.productsSupplied}
                         </td>
                         <td className="py-3 px-4 text-right text-gray-700 font-semibold">
-                          ${supplier.totalInventoryValue.toLocaleString()}
+                          ₱{supplier.totalInventoryValue.toLocaleString()}
                         </td>
                         <td className="py-3 px-4 text-gray-700">
                           {supplier.lastRestock}
@@ -713,7 +713,7 @@ export function Reports() {
                       <div>
                         <p className="text-xs text-gray-600">Revenue</p>
                         <p className="font-semibold text-navy">
-                          ${metric.revenue.toLocaleString()}
+                          ₱{metric.revenue.toLocaleString()}
                         </p>
                       </div>
                     </div>
@@ -778,10 +778,10 @@ export function Reports() {
                           {profit.productName}
                         </td>
                         <td className="py-3 px-4 text-right text-gray-700 font-semibold">
-                          ${profit.unitPrice.toFixed(2)}
+                          ₱{profit.unitPrice.toFixed(2)}
                         </td>
                         <td className="py-3 px-4 text-right text-gray-700">
-                          ${profit.costPrice.toFixed(2)}
+                          ₱{profit.costPrice.toFixed(2)}
                         </td>
                         <td className="py-3 px-4 text-right">
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-green-100 text-green-800">
@@ -792,7 +792,7 @@ export function Reports() {
                           {profit.quantitySold}
                         </td>
                         <td className="py-3 px-4 text-right text-navy font-bold">
-                          ${profit.totalProfit.toLocaleString("en-US", {
+                          ₱{profit.totalProfit.toLocaleString("en-US", {
                             minimumFractionDigits: 2,
                             maximumFractionDigits: 2,
                           })}
@@ -804,7 +804,7 @@ export function Reports() {
                         Total Profit:
                       </td>
                       <td className="py-3 px-4 text-right text-navy">
-                        ${(mockProfitData.reduce((sum, p) => sum + p.totalProfit, 0)).toLocaleString("en-US", {
+                        ₱{(mockProfitData.reduce((sum, p) => sum + p.totalProfit, 0)).toLocaleString("en-US", {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2,
                         })}

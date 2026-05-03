@@ -595,7 +595,7 @@ export function Sales() {
             }}
             className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
           >
-            ＋ Add Item
+            ＋ Create Sales
           </button>
         </div>
       </div>
@@ -692,20 +692,15 @@ export function Sales() {
                     ₱{transaction.total.toFixed(2)}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
-                    <select
-                      value={transaction.status}
-                      onChange={(e) =>
-                        handleStatusChange(transaction.id, e.target.value as "paid" | "unpaid")
-                      }
-                      className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border-none cursor-pointer ${
+                    <span
+                      className={`inline-block px-2.5 py-0.5 rounded-lg text-xs font-semibold ${
                         transaction.status === "paid"
                           ? "bg-green text-white"
                           : "bg-red text-white"
                       }`}
                     >
-                      <option value="paid">Paid</option>
-                      <option value="unpaid">Unpaid</option>
-                    </select>
+                      {transaction.status === "paid" ? "Paid" : "Unpaid"}
+                    </span>
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
                     <div className="flex gap-1">
@@ -1044,20 +1039,23 @@ function SalesModal({
             </div>
             <div>
               <label className="block text-xs font-semibold text-navy mb-1">
-                Payment Status
+                Payment Method
               </label>
               <select
-                value={formData.status}
+                value={formData.paymentMethod || ""}
                 onChange={(e) =>
                   setFormData({
                     ...formData,
-                    status: e.target.value as "paid" | "unpaid",
+                    paymentMethod: e.target.value,
                   })
                 }
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
               >
-                <option value="unpaid">Unpaid</option>
-                <option value="paid">Paid</option>
+                <option value="">Select method</option>
+                <option value="cash">Cash</option>
+                <option value="credit">Credit</option>
+                <option value="check">Check</option>
+                <option value="bank_transfer">Bank Transfer</option>
               </select>
             </div>
           </div>
