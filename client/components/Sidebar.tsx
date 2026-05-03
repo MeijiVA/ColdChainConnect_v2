@@ -36,7 +36,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
         >
           👤
         </button>
-        <div className="font-rajdhani text-sm font-semibold text-center text-white">
+        <div className="font-rajdhani text-base font-semibold text-center text-white">
           Mizael Anton M.
         </div>
         <div className="bg-white text-navy text-xs font-semibold px-3 py-1 rounded-full">
