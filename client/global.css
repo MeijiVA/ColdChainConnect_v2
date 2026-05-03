@@ -110,11 +110,11 @@
   }
 
   ::-webkit-scrollbar-track {
-    background: hsl(var(--off-white));
+    background: hsl(var(--navy));
   }
 
   ::-webkit-scrollbar-thumb {
-    background: hsl(var(--accent));
+    background: hsl(var(--off-white));
     border-radius: 4px;
   }
 }
