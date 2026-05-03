@@ -26,9 +26,9 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   const systemItems: typeof additionalItems = [];
 
   return (
-    <nav className="hidden md:flex w-72 bg-navy text-white flex-col items-center py-8 px-6 gap-0 flex-shrink-0 sticky top-0 h-screen overflow-y-auto">
-      {/* Profile Section */}
-      <div className="flex flex-col items-center gap-3 pb-8 border-b border-white/20 w-full mb-4">
+    <nav className="hidden md:flex w-72 bg-navy text-white flex-col items-center flex-shrink-0 h-screen">
+      {/* Profile Section - Fixed at Top */}
+      <div className="flex flex-col items-center gap-3 py-8 px-6 w-full flex-shrink-0">
         <button
           onClick={() => onPanelChange("settings")}
           className="w-20 h-20 rounded-full bg-gradient-to-br from-accent-2 to-navy-light flex items-center justify-center text-3xl font-bold border-2 border-accent-2 hover:border-gold hover:shadow-lg transition-all cursor-pointer"
@@ -44,8 +44,8 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
         </div>
       </div>
 
-      {/* Navigation */}
-      <div className="w-full flex-1 flex flex-col gap-3">
+      {/* Navigation - Scrollable */}
+      <div className="w-full flex-1 flex flex-col gap-3 px-6 overflow-y-auto">
         {/* Main Nav Items */}
         {navItems.map((item) => (
           <button
@@ -61,9 +61,6 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
           </button>
         ))}
 
-        {/* Divider */}
-        <div className="h-px bg-white/20 my-2"></div>
-
         {/* Additional Items */}
         {additionalItems.map((item) => (
           <button
@@ -78,9 +75,6 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
             {item.label}
           </button>
         ))}
-
-        {/* Divider */}
-        <div className="h-px bg-white/20 my-2"></div>
 
         {/* System Items */}
         {systemItems.map((item) => (
@@ -98,10 +92,10 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
         ))}
       </div>
 
-      {/* Logout */}
+      {/* Logout - Fixed at Bottom */}
       <button
         onClick={onLogout}
-        className="w-full px-6 py-3.5 flex items-center justify-center rounded-full text-white/70 font-barlow text-sm font-semibold transition-all bg-white/10 hover:bg-white/20 hover:text-white border-t border-white/20 mt-auto"
+        className="w-full px-6 py-3.5 flex items-center justify-center rounded-full text-white/70 font-barlow text-sm font-semibold transition-all bg-white/10 hover:bg-white/20 hover:text-white flex-shrink-0 m-6"
       >
         Log Out
       </button>
