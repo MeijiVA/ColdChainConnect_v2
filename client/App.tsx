@@ -69,16 +69,19 @@ const AppContent = () => {
         onSettingsClick={() => setActivePanel("settings")}
       />
 
-      {/* Sidebar + Main Content Area */}
-      <div className="flex flex-1 min-h-0">
-        {/* Sidebar */}
-        <Sidebar
-          activePanel={activePanel}
-          onPanelChange={setActivePanel}
-          onLogout={() => setIsLoggedIn(false)}
-        />
+      {/* Sidebar (Fixed) + Main Content Area */}
+      <div className="flex flex-1">
+        {/* Sidebar - Fixed Left */}
+        <div className="hidden md:block fixed left-0 top-16 w-72 h-[calc(100vh-4rem)] z-20">
+          <Sidebar
+            activePanel={activePanel}
+            onPanelChange={setActivePanel}
+            onLogout={() => setIsLoggedIn(false)}
+          />
+        </div>
 
-        {/* Main Content Area */}
+        {/* Main Content Area - Offset for Sidebar */}
+        <div className="hidden md:block md:w-72 flex-shrink-0" />
         <div className="flex-1 flex flex-col bg-off-white min-w-0">
           {/* Panel Content */}
           {renderPanel()}

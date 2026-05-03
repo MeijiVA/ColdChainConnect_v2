@@ -26,7 +26,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   const systemItems: typeof additionalItems = [];
 
   return (
-    <nav className="hidden md:flex w-72 bg-navy text-white flex-col items-center flex-shrink-0 h-screen">
+    <nav className="w-72 bg-navy text-white flex flex-col items-center flex-shrink-0 h-full">
       {/* Profile Section - Fixed at Top */}
       <div className="flex flex-col items-center gap-3 py-8 px-6 w-full flex-shrink-0">
         <button
