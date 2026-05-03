@@ -11,9 +11,9 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   const navItems = [
     { id: "dashboard", label: "Dashboard" },
     { id: "inventory", label: "Inventory Management" },
-    { id: "sales", label: "Sales Management" },
-    { id: "customers", label: "Customer Management" },
-    { id: "employees", label: "Employee Management" },
+    { id: "sales", label: "Sales Tracking" },
+    { id: "customers", label: "Customers" },
+    { id: "employees", label: "Employees" },
   ];
 
   const additionalItems = [
