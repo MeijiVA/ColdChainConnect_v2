@@ -13,14 +13,14 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
     { id: "inventory", label: "Inventory Management" },
     { id: "sales", label: "Sales Tracking" },
     { id: "customers", label: "Customers" },
-    { id: "employees", label: "Employees" },
+    { id: "trucks", label: "Dispatch" },
   ];
 
   const additionalItems = [
     { id: "payroll", label: "Payroll" },
     { id: "expenses", label: "Expenses & Finance" },
-    { id: "trucks", label: "Dispatch" },
     { id: "reports", label: "Reports" },
+    { id: "employees", label: "Employees" },
   ];
 
   const systemItems: typeof additionalItems = [];
