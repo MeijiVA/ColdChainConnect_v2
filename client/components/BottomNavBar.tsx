@@ -40,15 +40,6 @@ export function BottomNavBar({
         ))}
       </div>
 
-      {/* Logout Button */}
-      <div className="border-t border-white/10 px-4 py-2">
-        <button
-          onClick={onLogout}
-          className="w-full py-2 text-white/60 font-barlow text-xs font-semibold hover:text-white transition-all"
-        >
-          ⎋ Log Out
-        </button>
-      </div>
     </div>
   );
 }
