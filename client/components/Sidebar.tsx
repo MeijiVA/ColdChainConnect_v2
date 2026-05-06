@@ -1,5 +1,16 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import {
+  LayoutDashboard,
+  Package,
+  TrendingUp,
+  Users,
+  Truck,
+  Wallet,
+  BarChart3,
+  FileText,
+  Users2,
+} from "lucide-react";
 
 interface SidebarProps {
   activePanel: string;
@@ -9,18 +20,18 @@ interface SidebarProps {
 
 export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) {
   const navItems = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "inventory", label: "Inventory Management" },
-    { id: "sales", label: "Sales Tracking" },
-    { id: "customers", label: "Customers" },
-    { id: "trucks", label: "Dispatch" },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "inventory", label: "Inventory Management", icon: Package },
+    { id: "sales", label: "Sales Tracking", icon: TrendingUp },
+    { id: "customers", label: "Customers", icon: Users },
+    { id: "trucks", label: "Dispatch", icon: Truck },
   ];
 
   const additionalItems = [
-    { id: "payroll", label: "Payroll" },
-    { id: "expenses", label: "Expenses & Finance" },
-    { id: "reports", label: "Reports" },
-    { id: "employees", label: "Employees" },
+    { id: "payroll", label: "Payroll", icon: Wallet },
+    { id: "expenses", label: "Expenses & Finance", icon: BarChart3 },
+    { id: "reports", label: "Reports", icon: FileText },
+    { id: "employees", label: "Employees", icon: Users2 },
   ];
 
   const systemItems: typeof additionalItems = [];
@@ -47,52 +58,64 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
       {/* Navigation - Scrollable */}
       <div className="w-full flex-1 flex flex-col gap-3 px-6 overflow-y-auto">
         {/* Main Nav Items */}
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onPanelChange(item.id)}
-            style={activePanel === item.id ? { background: "linear-gradient(to right, #0546D7, #2B2CA5)" } : {}}
-            className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
-              activePanel === item.id
-                ? "text-white shadow-lg"
-                : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+        {navItems.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onPanelChange(item.id)}
+              style={activePanel === item.id ? { background: "linear-gradient(to right, #0546D7, #2B2CA5)" } : {}}
+              className={`flex items-center gap-3 px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
+                activePanel === item.id
+                  ? "text-white shadow-lg"
+                  : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
+              }`}
+            >
+              <IconComponent size={18} />
+              {item.label}
+            </button>
+          );
+        })}
 
         {/* Additional Items */}
-        {additionalItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onPanelChange(item.id)}
-            style={activePanel === item.id ? { background: "linear-gradient(to right, #0546D7, #2B2CA5)" } : {}}
-            className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
-              activePanel === item.id
-                ? "text-white shadow-lg"
-                : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+        {additionalItems.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onPanelChange(item.id)}
+              style={activePanel === item.id ? { background: "linear-gradient(to right, #0546D7, #2B2CA5)" } : {}}
+              className={`flex items-center gap-3 px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
+                activePanel === item.id
+                  ? "text-white shadow-lg"
+                  : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
+              }`}
+            >
+              <IconComponent size={18} />
+              {item.label}
+            </button>
+          );
+        })}
 
         {/* System Items */}
-        {systemItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onPanelChange(item.id)}
-            style={activePanel === item.id ? { background: "linear-gradient(to right, #0546D7, #2B2CA5)" } : {}}
-            className={`flex items-center justify-center px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
-              activePanel === item.id
-                ? "text-white shadow-lg"
-                : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+        {systemItems.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onPanelChange(item.id)}
+              style={activePanel === item.id ? { background: "linear-gradient(to right, #0546D7, #2B2CA5)" } : {}}
+              className={`flex items-center gap-3 px-6 py-3.5 rounded-full font-barlow text-sm font-semibold transition-all ${
+                activePanel === item.id
+                  ? "text-white shadow-lg"
+                  : "text-white/70 bg-white/10 hover:bg-white/20 hover:text-white"
+              }`}
+            >
+              <IconComponent size={18} />
+              {item.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Logout - Fixed at Bottom */}
