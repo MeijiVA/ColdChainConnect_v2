@@ -21,6 +21,7 @@ import { PlaceholderPanel } from "./pages/PlaceholderPanel";
 import { TrucksInTransit } from "./pages/TrucksInTransit";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
+import { BottomNavBar } from "./components/BottomNavBar";
 import NotFound from "./pages/NotFound";
 
 
@@ -71,7 +72,7 @@ const AppContent = () => {
 
       {/* Sidebar (Fixed) + Main Content Area */}
       <div className="flex flex-1">
-        {/* Sidebar - Fixed Left */}
+        {/* Sidebar - Fixed Left (Desktop Only) */}
         <div className="hidden md:block fixed left-0 top-16 w-72 h-[calc(100vh-4rem)] z-20">
           <Sidebar
             activePanel={activePanel}
@@ -80,13 +81,20 @@ const AppContent = () => {
           />
         </div>
 
-        {/* Main Content Area - Offset for Sidebar */}
+        {/* Main Content Area - Offset for Sidebar on Desktop */}
         <div className="hidden md:block md:w-72 flex-shrink-0" />
-        <div className="flex-1 flex flex-col bg-off-white min-w-0">
+        <div className="flex-1 flex flex-col bg-off-white min-w-0 pb-32 md:pb-0">
           {/* Panel Content */}
           {renderPanel({ onPanelChange: setActivePanel })}
         </div>
       </div>
+
+      {/* Bottom Navigation Bar (Mobile Only) */}
+      <BottomNavBar
+        activePanel={activePanel}
+        onPanelChange={setActivePanel}
+        onLogout={() => setIsLoggedIn(false)}
+      />
     </div>
   );
 };
