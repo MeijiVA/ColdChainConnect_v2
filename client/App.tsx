@@ -68,6 +68,7 @@ const AppContent = () => {
       <Topbar
         userName="Mizael Anton"
         onSettingsClick={() => setActivePanel("settings")}
+        onLogout={() => setIsLoggedIn(false)}
       />
 
       {/* Sidebar (Fixed) + Main Content Area */}

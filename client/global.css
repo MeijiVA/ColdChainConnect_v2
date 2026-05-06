@@ -84,6 +84,20 @@
     font-size: 14px;
   }
 
+  @media (max-width: 768px) {
+    html {
+      font-size: 13px;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      @apply text-sm sm:text-base md:text-lg lg:text-xl xl:text-2xl;
+    }
+
+    body {
+      @apply text-xs sm:text-sm;
+    }
+  }
+
   body {
     @apply bg-off-white text-foreground font-barlow;
   }
