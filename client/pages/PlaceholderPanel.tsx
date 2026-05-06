@@ -12,7 +12,7 @@ export function PlaceholderPanel({
   panelId,
 }: PlaceholderPanelProps) {
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide">
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div>
