@@ -478,15 +478,6 @@ export function Inventory() {
           </p>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
-          <button
-            onClick={() => {
-              resetForm();
-              setIsModalOpen(true);
-            }}
-            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            ＋ Add Item
-          </button>
           <button className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white transition-colors">
             ⬇ Import Excel
           </button>
