@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
+import { TrendingUp, TrendingDown, DollarSign, AlertCircle } from "lucide-react";
 
 type TabType = "expenses" | "operations" | "maintenance" | "receivables";
 
@@ -398,14 +399,14 @@ export function FinanceLedger() {
     switch (status) {
       case "approved":
       case "completed":
-        return "bg-green-100 text-green-800";
+        return "bg-green/15 text-green border border-green/30";
       case "pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow/15 text-yellow border border-yellow/30";
       case "rejected":
       case "scheduled":
-        return "bg-blue-100 text-blue-800";
+        return "bg-accent-2/15 text-accent-2 border border-accent-2/30";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted/15 text-muted border border-muted/30";
     }
   };
 
@@ -424,60 +425,143 @@ export function FinanceLedger() {
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalOperational = operationalCosts.reduce((sum, c) => sum + c.amount, 0);
   const totalMaintenance = maintenanceRecords.reduce((sum, r) => sum + r.cost, 0);
+  const totalReceivables = accountsReceivable.reduce((sum, ar) => sum + ar.amount, 0);
+  const paidReceivables = accountsReceivable
+    .filter((ar) => ar.status === "paid")
+    .reduce((sum, ar) => sum + ar.amount, 0);
+  const unpaidReceivables = totalReceivables - paidReceivables;
+
+  const pendingExpenses = expenses.filter((e) => e.status === "pending").reduce((sum, e) => sum + e.amount, 0);
+  const pendingOperational = operationalCosts.filter((c) => c.status === "pending").reduce((sum, c) => sum + c.amount, 0);
 
   return (
     <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide">
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-navy mb-2">Finance Ledger</h1>
-          <p className="text-gray-600">
-            Track expenses, operational costs, maintenance records, and accounts receivable
+          <h1 className="text-3xl md:text-4xl font-bold text-navy mb-2">Expenses & Finance</h1>
+          <p className="text-muted">
+            Manage financial operations, track expenses, and monitor accounts receivable
           </p>
         </div>
 
-        {/* Summary Cards */}
+        {/* Main Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+          <Card className="p-6 border-l-4 border-l-accent bg-gradient-to-br from-navy/5 to-transparent">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-muted mb-1">
+                  Total Expenses
+                </h3>
+                <p className="text-2xl md:text-3xl font-bold text-navy">
+                  ₱{totalExpenses.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted mt-2">
+                  {expenses.length} records
+                </p>
+              </div>
+              <div className="bg-accent/10 p-3 rounded-lg">
+                <TrendingDown className="text-accent" size={24} />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 border-l-4 border-l-accent-2 bg-gradient-to-br from-accent-2/5 to-transparent">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-muted mb-1">
+                  Operational Costs
+                </h3>
+                <p className="text-2xl md:text-3xl font-bold text-navy">
+                  ₱{totalOperational.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted mt-2">
+                  {operationalCosts.length} entries
+                </p>
+              </div>
+              <div className="bg-accent-2/10 p-3 rounded-lg">
+                <DollarSign className="text-accent-2" size={24} />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 border-l-4 border-l-gold bg-gradient-to-br from-gold/5 to-transparent">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-muted mb-1">
+                  Maintenance Costs
+                </h3>
+                <p className="text-2xl md:text-3xl font-bold text-navy">
+                  ₱{totalMaintenance.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted mt-2">
+                  {maintenanceRecords.length} records
+                </p>
+              </div>
+              <div className="bg-gold/10 p-3 rounded-lg">
+                <TrendingUp className="text-gold" size={24} />
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-6 border-l-4 border-l-green bg-gradient-to-br from-green/5 to-transparent">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-muted mb-1">
+                  Receivables
+                </h3>
+                <p className="text-2xl md:text-3xl font-bold text-navy">
+                  ₱{totalReceivables.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted mt-2">
+                  {accountsReceivable.length} invoices
+                </p>
+              </div>
+              <div className="bg-green/10 p-3 rounded-lg">
+                <DollarSign className="text-green" size={24} />
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <Card className="p-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">
-              Total Expenses
-            </h3>
-            <p className="text-3xl font-bold text-navy">
-              ₱{totalExpenses.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              {expenses.length} entries
-            </p>
+          <Card className="p-4 bg-yellow/5 border border-yellow/20">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-yellow" size={20} />
+              <div>
+                <h4 className="text-xs font-semibold text-muted">Pending Approvals</h4>
+                <p className="text-lg font-bold text-navy">₱{(pendingExpenses + pendingOperational).toLocaleString()}</p>
+              </div>
+            </div>
           </Card>
-          <Card className="p-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">
-              Operational Costs
-            </h3>
-            <p className="text-3xl font-bold text-navy">
-              ₱{totalOperational.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              {operationalCosts.length} entries
-            </p>
+
+          <Card className="p-4 bg-red/5 border border-red/20">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-red" size={20} />
+              <div>
+                <h4 className="text-xs font-semibold text-muted">Unpaid Receivables</h4>
+                <p className="text-lg font-bold text-navy">₱{unpaidReceivables.toLocaleString()}</p>
+              </div>
+            </div>
           </Card>
-          <Card className="p-6">
-            <h3 className="text-sm font-semibold text-gray-600 mb-2">
-              Maintenance Costs
-            </h3>
-            <p className="text-3xl font-bold text-navy">
-              ₱{totalMaintenance.toLocaleString()}
-            </p>
-            <p className="text-xs text-gray-500 mt-2">
-              {maintenanceRecords.length} records
-            </p>
+
+          <Card className="p-4 bg-green/5 border border-green/20">
+            <div className="flex items-center gap-3">
+              <TrendingUp className="text-green" size={20} />
+              <div>
+                <h4 className="text-xs font-semibold text-muted">Collected Payments</h4>
+                <p className="text-lg font-bold text-navy">₱{paidReceivables.toLocaleString()}</p>
+              </div>
+            </div>
           </Card>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex gap-2 mb-6 border-b border-border">
+        <div className="flex gap-2 mb-6 border-b border-border overflow-x-auto">
           <button
             onClick={() => setActiveTab("expenses")}
-            className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+            className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
               activeTab === "expenses"
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-navy"
@@ -487,7 +571,7 @@ export function FinanceLedger() {
           </button>
           <button
             onClick={() => setActiveTab("operations")}
-            className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+            className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
               activeTab === "operations"
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-navy"
@@ -497,7 +581,7 @@ export function FinanceLedger() {
           </button>
           <button
             onClick={() => setActiveTab("maintenance")}
-            className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+            className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
               activeTab === "maintenance"
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-navy"
@@ -507,7 +591,7 @@ export function FinanceLedger() {
           </button>
           <button
             onClick={() => setActiveTab("receivables")}
-            className={`px-4 py-3 font-semibold transition-all border-b-2 ${
+            className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
               activeTab === "receivables"
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-navy"
@@ -538,7 +622,7 @@ export function FinanceLedger() {
             </div>
 
             {showAddForm && (
-              <Card className="p-6 mb-4 bg-off-white">
+              <Card className="p-6 mb-4 bg-off-white border-2 border-accent/20">
                 <h3 className="font-bold text-navy mb-4">
                   Log New Maintenance Expense
                 </h3>
@@ -622,24 +706,24 @@ export function FinanceLedger() {
               </Card>
             )}
 
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden border-2 border-border/50">
               <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border bg-off-white">
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                    <tr className="border-b border-border bg-navy-mid">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Date
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Category
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Description
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-navy">
+                      <th className="text-right py-3 px-4 font-semibold text-white">
                         Amount
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Status
                       </th>
                     </tr>
@@ -648,18 +732,18 @@ export function FinanceLedger() {
                     {expenses.map((expense) => (
                       <tr
                         key={expense.id}
-                        className="border-b border-border hover:bg-off-white"
+                        className="border-b border-border hover:bg-off-white transition-colors"
                       >
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-navy font-medium">
                           {expense.date}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-navy">
                           {expense.category}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {expense.description}
                         </td>
-                        <td className="py-3 px-4 text-right font-semibold text-navy">
+                        <td className="py-3 px-4 text-right font-bold text-navy">
                           ₱{expense.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-4">
@@ -701,7 +785,7 @@ export function FinanceLedger() {
             </div>
 
             {showAddForm && (
-              <Card className="p-6 mb-4 bg-off-white">
+              <Card className="p-6 mb-4 bg-off-white border-2 border-accent/20">
                 <h3 className="font-bold text-navy mb-4">
                   Log New Operational Cost
                 </h3>
@@ -793,24 +877,24 @@ export function FinanceLedger() {
               </Card>
             )}
 
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden border-2 border-border/50">
               <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border bg-off-white">
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                    <tr className="border-b border-border bg-navy-mid">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Date
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Category
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Description
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-navy">
+                      <th className="text-right py-3 px-4 font-semibold text-white">
                         Amount
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Status
                       </th>
                     </tr>
@@ -819,18 +903,18 @@ export function FinanceLedger() {
                     {operationalCosts.map((cost) => (
                       <tr
                         key={cost.id}
-                        className="border-b border-border hover:bg-off-white"
+                        className="border-b border-border hover:bg-off-white transition-colors"
                       >
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-navy font-medium">
                           {cost.date}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-navy">
                           {cost.category}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {cost.description}
                         </td>
-                        <td className="py-3 px-4 text-right font-semibold text-navy">
+                        <td className="py-3 px-4 text-right font-bold text-navy">
                           ₱{cost.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-4">
@@ -872,7 +956,7 @@ export function FinanceLedger() {
             </div>
 
             {showAddForm && (
-              <Card className="p-6 mb-4 bg-off-white">
+              <Card className="p-6 mb-4 bg-off-white border-2 border-accent/20">
                 <h3 className="font-bold text-navy mb-4">
                   Add Truck Maintenance Record
                 </h3>
@@ -1007,33 +1091,33 @@ export function FinanceLedger() {
               </Card>
             )}
 
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden border-2 border-border/50">
               <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border bg-off-white">
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                    <tr className="border-b border-border bg-navy-mid">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Date
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Truck
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Service Provider
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Service
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-navy">
+                      <th className="text-right py-3 px-4 font-semibold text-white">
                         Cost
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Mileage
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Next Due
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Status
                       </th>
                     </tr>
@@ -1042,27 +1126,27 @@ export function FinanceLedger() {
                     {maintenanceRecords.map((record) => (
                       <tr
                         key={record.id}
-                        className="border-b border-border hover:bg-off-white"
+                        className="border-b border-border hover:bg-off-white transition-colors"
                       >
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-navy font-medium">
                           {record.date}
                         </td>
-                        <td className="py-3 px-4 font-semibold text-navy">
+                        <td className="py-3 px-4 font-bold text-accent">
                           {record.truck}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {record.serviceProvider}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {record.service}
                         </td>
-                        <td className="py-3 px-4 text-right font-semibold text-navy">
+                        <td className="py-3 px-4 text-right font-bold text-navy">
                           ₱{record.cost.toFixed(2)}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {record.mileage.toLocaleString()} mi
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {record.nextServiceDue}
                         </td>
                         <td className="py-3 px-4">
@@ -1092,30 +1176,30 @@ export function FinanceLedger() {
               </h2>
             </div>
 
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden border-2 border-border/50">
               <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-border bg-off-white">
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                    <tr className="border-b border-border bg-navy-mid">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Sales ID
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Customer ID
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Customer Name
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Date
                       </th>
-                      <th className="text-right py-3 px-4 font-semibold text-navy">
+                      <th className="text-right py-3 px-4 font-semibold text-white">
                         Amount
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Due Date
                       </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
                         Status
                       </th>
                     </tr>
@@ -1124,24 +1208,24 @@ export function FinanceLedger() {
                     {accountsReceivable.map((ar) => (
                       <tr
                         key={ar.id}
-                        className="border-b border-border hover:bg-off-white"
+                        className="border-b border-border hover:bg-off-white transition-colors"
                       >
-                        <td className="py-3 px-4 text-navy font-semibold">
+                        <td className="py-3 px-4 text-accent font-bold">
                           {ar.salesId}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted font-medium">
                           {ar.customerId}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-navy font-medium">
                           {ar.customerName}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {ar.date}
                         </td>
-                        <td className="py-3 px-4 text-right font-semibold text-navy">
+                        <td className="py-3 px-4 text-right font-bold text-navy">
                           ₱{ar.amount.toLocaleString()}
                         </td>
-                        <td className="py-3 px-4 text-gray-700">
+                        <td className="py-3 px-4 text-muted">
                           {ar.dueDate}
                         </td>
                         <td className="py-3 px-4 whitespace-nowrap">
@@ -1150,10 +1234,10 @@ export function FinanceLedger() {
                             onChange={(e) =>
                               handleUpdateReceivableStatus(ar.id, e.target.value as "paid" | "unpaid")
                             }
-                            className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border-none cursor-pointer ${
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${
                               ar.status === "paid"
-                                ? "bg-green-100 text-green-800"
-                                : "bg-yellow-100 text-yellow-800"
+                                ? "bg-green/15 text-green"
+                                : "bg-yellow/15 text-yellow"
                             }`}
                           >
                             <option value="paid">Paid</option>
