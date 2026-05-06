@@ -562,7 +562,7 @@ export function Inventory() {
         {/* Left Column: Batch Products Table (65%) */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl border border-border overflow-hidden">
-            <div className="overflow-x-auto text-xs md:text-sm">
+            <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
               <table className="w-full">
                 <thead>
                   <tr>
@@ -1394,7 +1394,7 @@ function CreateBatchForm({
       {batchItems.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-navy mb-3">Batch Items</h3>
-          <div className="border border-border rounded-lg overflow-x-auto">
+          <div className="border border-border rounded-lg overflow-x-auto scrollbar-hide">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-navy-mid border-b border-border">

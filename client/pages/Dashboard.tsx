@@ -297,7 +297,7 @@ export function Dashboard({ onPanelChange }: { onPanelChange?: (panel: string) =
             <h2 className="font-rajdhani text-xl font-bold text-navy mb-4 letter-spacing-tight">
               Recent Transactions
             </h2>
-            <div className="overflow-x-auto text-xs md:text-sm">
+            <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
               <table className="w-full">
                 <thead>
                   <tr>

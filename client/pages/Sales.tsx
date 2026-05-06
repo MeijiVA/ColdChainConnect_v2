@@ -638,7 +638,7 @@ export function Sales() {
 
       {/* Transactions Table */}
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="overflow-x-auto text-xs md:text-sm">
+        <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
           <table className="w-full">
             <thead>
               <tr>

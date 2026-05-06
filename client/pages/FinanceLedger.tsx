@@ -623,7 +623,7 @@ export function FinanceLedger() {
             )}
 
             <Card className="overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -794,7 +794,7 @@ export function FinanceLedger() {
             )}
 
             <Card className="overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -1008,7 +1008,7 @@ export function FinanceLedger() {
             )}
 
             <Card className="overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -1093,7 +1093,7 @@ export function FinanceLedger() {
             </div>
 
             <Card className="overflow-hidden">
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
