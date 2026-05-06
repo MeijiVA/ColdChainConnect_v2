@@ -5,7 +5,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { TrendingUp, TrendingDown, DollarSign, AlertCircle } from "lucide-react";
 
-type TabType = "expenses" | "operations" | "maintenance" | "receivables";
+type TabType = "expenses" | "operations" | "maintenance" | "receivables" | "payables";
 
 interface Expense {
   id: string;
@@ -45,6 +45,17 @@ interface AccountsReceivable {
   date: string;
   amount: number;
   status: "paid" | "unpaid";
+  dueDate: string;
+}
+
+interface AccountsPayable {
+  id: string;
+  vendorId: string;
+  vendorName: string;
+  invoiceNumber: string;
+  date: string;
+  amount: number;
+  status: "unpaid" | "paid";
   dueDate: string;
 }
 
@@ -201,6 +212,49 @@ const mockAccountsReceivable: AccountsReceivable[] = [
   },
 ];
 
+const mockAccountsPayable: AccountsPayable[] = [
+  {
+    id: "1",
+    vendorId: "VEN-001",
+    vendorName: "Fuel Supplier Inc.",
+    invoiceNumber: "INV-2024-001",
+    date: "2024-01-15",
+    amount: 5000,
+    status: "paid",
+    dueDate: "2024-01-22",
+  },
+  {
+    id: "2",
+    vendorId: "VEN-002",
+    vendorName: "Parts & Components Ltd.",
+    invoiceNumber: "INV-2024-002",
+    date: "2024-01-14",
+    amount: 3200,
+    status: "unpaid",
+    dueDate: "2024-01-28",
+  },
+  {
+    id: "3",
+    vendorId: "VEN-003",
+    vendorName: "Maintenance Services Co.",
+    invoiceNumber: "INV-2024-003",
+    date: "2024-01-13",
+    amount: 2500,
+    status: "unpaid",
+    dueDate: "2024-01-27",
+  },
+  {
+    id: "4",
+    vendorId: "VEN-001",
+    vendorName: "Fuel Supplier Inc.",
+    invoiceNumber: "INV-2024-004",
+    date: "2024-01-12",
+    amount: 4800,
+    status: "paid",
+    dueDate: "2024-01-19",
+  },
+];
+
 export function FinanceLedger() {
   const [activeTab, setActiveTab] = useState<TabType>("expenses");
   const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
@@ -213,6 +267,9 @@ export function FinanceLedger() {
   const [accountsReceivable, setAccountsReceivable] = useState<
     AccountsReceivable[]
   >(mockAccountsReceivable);
+  const [accountsPayable, setAccountsPayable] = useState<AccountsPayable[]>(
+    mockAccountsPayable
+  );
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -458,6 +515,18 @@ export function FinanceLedger() {
     });
   };
 
+  const handleUpdatePayableStatus = (id: string, newStatus: "paid" | "unpaid") => {
+    setAccountsPayable(
+      accountsPayable.map((ap) =>
+        ap.id === id ? { ...ap, status: newStatus } : ap
+      )
+    );
+    toast({
+      title: "Success",
+      description: `Payable status updated to ${newStatus}.`,
+    });
+  };
+
   const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
   const totalOperational = operationalCosts.reduce((sum, c) => sum + c.amount, 0);
   const totalMaintenance = maintenanceRecords.reduce((sum, r) => sum + r.cost, 0);
@@ -466,6 +535,12 @@ export function FinanceLedger() {
     .filter((ar) => ar.status === "paid")
     .reduce((sum, ar) => sum + ar.amount, 0);
   const unpaidReceivables = totalReceivables - paidReceivables;
+
+  const totalPayables = accountsPayable.reduce((sum, ap) => sum + ap.amount, 0);
+  const paidPayables = accountsPayable
+    .filter((ap) => ap.status === "paid")
+    .reduce((sum, ap) => sum + ap.amount, 0);
+  const unpaidPayables = totalPayables - paidPayables;
 
   const pendingExpenses = expenses.filter((e) => e.status === "pending").reduce((sum, e) => sum + e.amount, 0);
   const pendingOperational = operationalCosts.filter((c) => c.status === "pending").reduce((sum, c) => sum + c.amount, 0);
@@ -558,10 +633,29 @@ export function FinanceLedger() {
               </div>
             </div>
           </Card>
+
+          <Card className="p-6 border-l-4 border-l-red bg-gradient-to-br from-red/5 to-transparent">
+            <div className="flex items-start justify-between">
+              <div>
+                <h3 className="text-sm font-semibold text-muted mb-1">
+                  Payables
+                </h3>
+                <p className="text-2xl md:text-3xl font-bold text-navy">
+                  ₱{totalPayables.toLocaleString()}
+                </p>
+                <p className="text-xs text-muted mt-2">
+                  {accountsPayable.length} invoices
+                </p>
+              </div>
+              <div className="bg-red/10 p-3 rounded-lg">
+                <DollarSign className="text-red" size={24} />
+              </div>
+            </div>
+          </Card>
         </div>
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
           <Card className="p-4 bg-yellow/5 border border-yellow/20">
             <div className="flex items-center gap-3">
               <AlertCircle className="text-yellow" size={20} />
@@ -578,6 +672,16 @@ export function FinanceLedger() {
               <div>
                 <h4 className="text-xs font-semibold text-muted">Unpaid Receivables</h4>
                 <p className="text-lg font-bold text-navy">₱{unpaidReceivables.toLocaleString()}</p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="p-4 bg-red/5 border border-red/20">
+            <div className="flex items-center gap-3">
+              <AlertCircle className="text-red" size={20} />
+              <div>
+                <h4 className="text-xs font-semibold text-muted">Unpaid Payables</h4>
+                <p className="text-lg font-bold text-navy">₱{unpaidPayables.toLocaleString()}</p>
               </div>
             </div>
           </Card>
@@ -634,6 +738,16 @@ export function FinanceLedger() {
             }`}
           >
             Accounts Receivable
+          </button>
+          <button
+            onClick={() => setActiveTab("payables")}
+            className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
+              activeTab === "payables"
+                ? "border-accent text-accent"
+                : "border-transparent text-muted hover:text-navy"
+            }`}
+          >
+            Accounts Payable
           </button>
         </div>
 
@@ -1293,6 +1407,91 @@ export function FinanceLedger() {
                           >
                             <option value="paid">Paid</option>
                             <option value="unpaid">Unpaid</option>
+                          </select>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === "payables" && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl font-bold text-navy">
+                Accounts Payable
+              </h2>
+            </div>
+
+            <Card className="overflow-hidden border-2 border-border/50">
+              <div className="overflow-x-auto scrollbar-hide">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border bg-navy-mid">
+                      <th className="text-left py-3 px-4 font-semibold text-white">
+                        Vendor ID
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-white">
+                        Vendor Name
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-white">
+                        Invoice Number
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-white">
+                        Date
+                      </th>
+                      <th className="text-right py-3 px-4 font-semibold text-white">
+                        Amount
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-white">
+                        Due Date
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-white">
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {accountsPayable.map((ap) => (
+                      <tr
+                        key={ap.id}
+                        className="border-b border-border hover:bg-off-white transition-colors"
+                      >
+                        <td className="py-3 px-4 text-accent font-bold">
+                          {ap.vendorId}
+                        </td>
+                        <td className="py-3 px-4 text-navy font-medium">
+                          {ap.vendorName}
+                        </td>
+                        <td className="py-3 px-4 text-muted font-medium">
+                          {ap.invoiceNumber}
+                        </td>
+                        <td className="py-3 px-4 text-muted">
+                          {ap.date}
+                        </td>
+                        <td className="py-3 px-4 text-right font-bold text-navy">
+                          ₱{ap.amount.toLocaleString()}
+                        </td>
+                        <td className="py-3 px-4 text-muted">
+                          {ap.dueDate}
+                        </td>
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <select
+                            value={ap.status}
+                            onChange={(e) =>
+                              handleUpdatePayableStatus(ap.id, e.target.value as "paid" | "unpaid")
+                            }
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${
+                              ap.status === "paid"
+                                ? "bg-green/15 text-green"
+                                : "bg-yellow/15 text-yellow"
+                            }`}
+                          >
+                            <option value="unpaid">Unpaid</option>
+                            <option value="paid">Paid</option>
                           </select>
                         </td>
                       </tr>
