@@ -510,7 +510,7 @@ export function TrucksInTransit() {
               </div>
             </div>
 
-            <div className="overflow-x-auto text-xs md:text-sm">
+            <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
               <table className="w-full">
                 <thead>
                   <tr>
