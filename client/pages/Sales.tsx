@@ -48,6 +48,7 @@ interface ForecastRecommendation {
 
 export function Sales() {
   // Inventory data
+  const [showDeleteButtons, setShowDeleteButtons] = useState(false);
   const [inventory] = useState<InventoryProduct[]>([
     {
       id: "1",
@@ -580,7 +581,13 @@ export function Sales() {
       </div>
 
       {/* Actions */}
-      <div className="flex flex-col md:flex-row gap-3">
+      <div className="flex flex-col md:flex-row gap-3 items-center">
+        <button
+          onClick={() => setShowDeleteButtons(!showDeleteButtons)}
+          className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white"
+        >
+          {showDeleteButtons ? "🔒 Hide Delete" : "🔓 Show Delete"}
+        </button>
         <div className="flex gap-2 ml-auto">
           <button className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white">
             ⬇ Import
@@ -642,7 +649,7 @@ export function Sales() {
                   Sales ID
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Customer ID
+                  Customer Name
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden sm:table-cell">
                   Sales Date
@@ -677,7 +684,7 @@ export function Sales() {
                     <input type="checkbox" className="rounded" />
                   </td>
                   <td className="px-3 py-3 text-navy font-semibold">{transaction.salesId}</td>
-                  <td className="px-3 py-3 text-navy">{transaction.customerId}</td>
+                  <td className="px-3 py-3 text-navy">{transaction.customerName}</td>
                   <td className="px-3 py-3 text-navy hidden sm:table-cell">
                     {new Date(transaction.date).toLocaleDateString()}
                   </td>
@@ -721,13 +728,15 @@ export function Sales() {
                       >
                         ✏
                       </button>
-                      <button
-                        onClick={() => handleDeleteTransaction(transaction.id)}
-                        className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
-                        title="Delete"
-                      >
-                        🗑
-                      </button>
+                      {showDeleteButtons && (
+                        <button
+                          onClick={() => handleDeleteTransaction(transaction.id)}
+                          className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                          title="Delete"
+                        >
+                          🗑
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -1064,12 +1073,19 @@ function SalesModal({
           <div>
             <div className="flex items-center justify-between mb-3">
               <h3 className="font-rajdhani text-lg font-bold text-navy">Items</h3>
-              <button
-                onClick={addItem}
-                className="px-3 py-1 bg-accent-2 text-white rounded text-xs font-semibold hover:opacity-90"
-              >
-                ＋ Add Item
-              </button>
+              <div className="flex gap-2">
+                {items.length > 1 && (
+                  <div className="text-xs text-muted">
+                    {items.length} items added
+                  </div>
+                )}
+                <button
+                  onClick={addItem}
+                  className="px-3 py-1 bg-accent-2 text-white rounded text-xs font-semibold hover:opacity-90"
+                >
+                  ＋ Add Product
+                </button>
+              </div>
             </div>
 
             <div className="space-y-3">
@@ -1144,8 +1160,9 @@ function SalesModal({
                       <button
                         onClick={() => removeItem(index)}
                         className="px-3 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                        title="Remove product"
                       >
-                        Remove
+                        🗑 Remove
                       </button>
                     )}
                   </div>
