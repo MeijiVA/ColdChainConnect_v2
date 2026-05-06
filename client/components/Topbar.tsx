@@ -1,12 +1,19 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { NotificationPanel } from "./NotificationPanel";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 interface TopbarProps {
   userName: string;
   onSettingsClick?: () => void;
+  onLogout?: () => void;
 }
 
-export function Topbar({ userName, onSettingsClick }: TopbarProps) {
+export function Topbar({ userName, onSettingsClick, onLogout }: TopbarProps) {
   const [searchTerm, setSearchTerm] = useState("");
   const [showNotifications, setShowNotifications] = useState(false);
   const [unreadCount] = useState(4);
@@ -50,13 +57,20 @@ export function Topbar({ userName, onSettingsClick }: TopbarProps) {
           )}
         </button>
 
-        {/* Settings button */}
-        <button
-          onClick={onSettingsClick}
-          className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center cursor-pointer text-lg text-white transition-all hover:bg-white/20"
-        >
-          ⚙️
-        </button>
+        {/* Settings dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="w-10 h-10 rounded-lg bg-white/10 border border-white/20 flex items-center justify-center cursor-pointer text-lg text-white transition-all hover:bg-white/20">
+              ⚙️
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="bg-navy text-white border-white/20">
+            <DropdownMenuItem onClick={onSettingsClick} className="focus:bg-white/10 focus:text-white cursor-pointer">
+              Settings
+            </DropdownMenuItem>
+            <DropdownMenuItem onClick={onLogout} className="focus:bg-white/10 focus:text-white cursor-pointer">Log Out</DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
 
         {/* Notification Panel */}
         {showNotifications && (

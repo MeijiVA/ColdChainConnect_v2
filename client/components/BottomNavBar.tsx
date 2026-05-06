@@ -1,3 +1,15 @@
+import {
+  LayoutDashboard,
+  Package,
+  TrendingUp,
+  Users,
+  Truck,
+  Wallet,
+  BarChart3,
+  FileText,
+  Users2,
+} from "lucide-react";
+
 interface BottomNavBarProps {
   activePanel: string;
   onPanelChange: (panel: string) => void;
@@ -10,45 +22,42 @@ export function BottomNavBar({
   onLogout,
 }: BottomNavBarProps) {
   const navItems = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "inventory", label: "Inventory" },
-    { id: "sales", label: "Sales" },
-    { id: "customers", label: "Customers" },
-    { id: "trucks", label: "Dispatch" },
-    { id: "payroll", label: "Payroll" },
-    { id: "expenses", label: "Expenses" },
-    { id: "reports", label: "Reports" },
-    { id: "employees", label: "Employees" },
+    { id: "dashboard", label: "Dashboard", icon: LayoutDashboard },
+    { id: "inventory", label: "Inventory", icon: Package },
+    { id: "sales", label: "Sales", icon: TrendingUp },
+    { id: "customers", label: "Customers", icon: Users },
+    { id: "trucks", label: "Dispatch", icon: Truck },
+    { id: "payroll", label: "Payroll", icon: Wallet },
+    { id: "expenses", label: "Expenses", icon: BarChart3 },
+    { id: "reports", label: "Reports", icon: FileText },
+    { id: "employees", label: "Employees", icon: Users2 },
   ];
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-navy border-t border-white/10 z-30 md:hidden">
-      {/* Scrollable Navigation Items */}
-      <div className="flex overflow-x-auto scrollbar-hide">
-        {navItems.map((item) => (
-          <button
-            key={item.id}
-            onClick={() => onPanelChange(item.id)}
-            className={`flex-shrink-0 px-4 py-3 font-barlow text-xs font-semibold transition-all whitespace-nowrap ${
-              activePanel === item.id
-                ? "text-white border-b-2 border-accent-2"
-                : "text-white/60 hover:text-white"
-            }`}
-          >
-            {item.label}
-          </button>
-        ))}
+      {/* Scrollable Navigation Items - Swipeable on mobile */}
+      <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide gap-1 scroll-smooth touch-pan-x px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+        {navItems.map((item) => {
+          const IconComponent = item.icon;
+          return (
+            <button
+              key={item.id}
+              onClick={() => onPanelChange(item.id)}
+              className={`flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 font-barlow text-[10px] font-semibold transition-all min-w-max ${
+                activePanel === item.id
+                  ? "text-white"
+                  : "text-white/60 hover:text-white"
+              }`}
+            >
+              <IconComponent size={18} />
+              <span className="mt-0.5">{item.label}</span>
+            </button>
+          );
+        })}
+        {/* Right padding to allow full scrolling */}
+        <div className="flex-shrink-0 w-2" />
       </div>
 
-      {/* Logout Button */}
-      <div className="border-t border-white/10 px-4 py-2">
-        <button
-          onClick={onLogout}
-          className="w-full py-2 text-white/60 font-barlow text-xs font-semibold hover:text-white transition-all"
-        >
-          ⎋ Log Out
-        </button>
-      </div>
     </div>
   );
 }
