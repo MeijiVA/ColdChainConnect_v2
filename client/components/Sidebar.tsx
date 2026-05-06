@@ -56,7 +56,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
       </div>
 
       {/* Navigation - Scrollable */}
-      <div className="w-full flex-1 flex flex-col gap-3 px-6 overflow-y-auto">
+      <div className="w-full flex-1 flex flex-col gap-3 px-6 overflow-y-auto scrollbar-hide">
         {/* Main Nav Items */}
         {navItems.map((item) => {
           const IconComponent = item.icon;
