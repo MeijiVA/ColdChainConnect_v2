@@ -410,6 +410,42 @@ export function FinanceLedger() {
     }
   };
 
+  const handleUpdateExpenseStatus = (id: string, newStatus: "pending" | "approved" | "rejected") => {
+    setExpenses(
+      expenses.map((e) =>
+        e.id === id ? { ...e, status: newStatus } : e
+      )
+    );
+    toast({
+      title: "Success",
+      description: `Expense status updated to ${newStatus}.`,
+    });
+  };
+
+  const handleUpdateOperationalStatus = (id: string, newStatus: "pending" | "approved" | "rejected") => {
+    setOperationalCosts(
+      operationalCosts.map((c) =>
+        c.id === id ? { ...c, status: newStatus } : c
+      )
+    );
+    toast({
+      title: "Success",
+      description: `Operational cost status updated to ${newStatus}.`,
+    });
+  };
+
+  const handleUpdateMaintenanceStatus = (id: string, newStatus: "completed" | "scheduled" | "pending") => {
+    setMaintenanceRecords(
+      maintenanceRecords.map((r) =>
+        r.id === id ? { ...r, status: newStatus } : r
+      )
+    );
+    toast({
+      title: "Success",
+      description: `Maintenance status updated to ${newStatus}.`,
+    });
+  };
+
   const handleUpdateReceivableStatus = (id: string, newStatus: "paid" | "unpaid") => {
     setAccountsReceivable(
       accountsReceivable.map((ar) =>
@@ -746,15 +782,20 @@ export function FinanceLedger() {
                         <td className="py-3 px-4 text-right font-bold text-navy">
                           ₱{expense.amount.toFixed(2)}
                         </td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeColor(
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <select
+                            value={expense.status}
+                            onChange={(e) =>
+                              handleUpdateExpenseStatus(expense.id, e.target.value as "pending" | "approved" | "rejected")
+                            }
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${getStatusBadgeColor(
                               expense.status
                             )}`}
                           >
-                            {expense.status.charAt(0).toUpperCase() +
-                              expense.status.slice(1)}
-                          </span>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
                         </td>
                       </tr>
                     ))}
@@ -917,15 +958,20 @@ export function FinanceLedger() {
                         <td className="py-3 px-4 text-right font-bold text-navy">
                           ₱{cost.amount.toFixed(2)}
                         </td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeColor(
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <select
+                            value={cost.status}
+                            onChange={(e) =>
+                              handleUpdateOperationalStatus(cost.id, e.target.value as "pending" | "approved" | "rejected")
+                            }
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${getStatusBadgeColor(
                               cost.status
                             )}`}
                           >
-                            {cost.status.charAt(0).toUpperCase() +
-                              cost.status.slice(1)}
-                          </span>
+                            <option value="pending">Pending</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
+                          </select>
                         </td>
                       </tr>
                     ))}
@@ -1149,15 +1195,20 @@ export function FinanceLedger() {
                         <td className="py-3 px-4 text-muted">
                           {record.nextServiceDue}
                         </td>
-                        <td className="py-3 px-4">
-                          <span
-                            className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold ${getStatusBadgeColor(
+                        <td className="py-3 px-4 whitespace-nowrap">
+                          <select
+                            value={record.status}
+                            onChange={(e) =>
+                              handleUpdateMaintenanceStatus(record.id, e.target.value as "completed" | "scheduled" | "pending")
+                            }
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${getStatusBadgeColor(
                               record.status
                             )}`}
                           >
-                            {record.status.charAt(0).toUpperCase() +
-                              record.status.slice(1)}
-                          </span>
+                            <option value="pending">Pending</option>
+                            <option value="scheduled">Scheduled</option>
+                            <option value="completed">Completed</option>
+                          </select>
                         </td>
                       </tr>
                     ))}
