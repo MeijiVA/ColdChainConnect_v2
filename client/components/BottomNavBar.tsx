@@ -35,15 +35,15 @@ export function BottomNavBar({
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-navy border-t border-white/10 z-30 md:hidden">
-      {/* Scrollable Navigation Items */}
-      <div className="flex overflow-x-auto scrollbar-hide gap-1">
+      {/* Scrollable Navigation Items - Swipeable on mobile */}
+      <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide gap-1 scroll-smooth touch-pan-x px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
         {navItems.map((item) => {
           const IconComponent = item.icon;
           return (
             <button
               key={item.id}
               onClick={() => onPanelChange(item.id)}
-              className={`flex-shrink-0 flex flex-col items-center justify-center px-2 py-2 font-barlow text-[10px] font-semibold transition-all ${
+              className={`flex-shrink-0 flex flex-col items-center justify-center px-3 py-2 font-barlow text-[10px] font-semibold transition-all min-w-max ${
                 activePanel === item.id
                   ? "text-white"
                   : "text-white/60 hover:text-white"
@@ -54,6 +54,8 @@ export function BottomNavBar({
             </button>
           );
         })}
+        {/* Right padding to allow full scrolling */}
+        <div className="flex-shrink-0 w-2" />
       </div>
 
     </div>
