@@ -64,11 +64,11 @@ export function Topbar({ userName, onSettingsClick, onLogout }: TopbarProps) {
               ⚙️
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem onClick={onSettingsClick}>
+          <DropdownMenuContent align="end" className="bg-navy text-white border-white/20">
+            <DropdownMenuItem onClick={onSettingsClick} className="focus:bg-white/10 focus:text-white cursor-pointer">
               Settings
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={onLogout}>Log Out</DropdownMenuItem>
+            <DropdownMenuItem onClick={onLogout} className="focus:bg-white/10 focus:text-white cursor-pointer">Log Out</DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
 
