@@ -15,10 +15,16 @@ interface InventoryProduct {
   lastUpdated: string;
 }
 
+interface BatchItem {
+  productId: string;
+  quantity: number;
+  expiryDate: string;
+}
+
 interface Batch {
   id: string;
   name: string;
-  productIds: string[]; // references to products from master list
+  items: BatchItem[]; // Now contains items with custom quantities and expiry dates
   createdAt: string;
 }
 
@@ -145,6 +151,7 @@ export function Inventory() {
   const [qrProduct, setQrProduct] = useState<InventoryProduct | null>(null);
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [newBatchName, setNewBatchName] = useState("");
+  const [showDeleteButtons, setShowDeleteButtons] = useState(false);
 
   // Form state for add/edit
   const [formData, setFormData] = useState<InventoryProduct>({
@@ -169,7 +176,28 @@ export function Inventory() {
     const savedSelectedBatch = localStorage.getItem(STORAGE_KEYS.SELECTED_BATCH);
 
     if (savedBatches) {
-      const parsedBatches = JSON.parse(savedBatches);
+      let parsedBatches = JSON.parse(savedBatches);
+
+      // Migrate old batch structure if needed (productIds -> items)
+      parsedBatches = parsedBatches.map((batch: any) => {
+        if (batch.productIds && !batch.items) {
+          // Old structure - migrate to new structure
+          return {
+            ...batch,
+            items: batch.productIds.map((productId: string) => {
+              const product = products.find((p) => p.id === productId);
+              return {
+                productId,
+                quantity: product?.quantity || 0,
+                expiryDate: product?.expiryDate || new Date().toISOString().split('T')[0],
+              };
+            }),
+            productIds: undefined,
+          };
+        }
+        return batch;
+      });
+
       setBatches(parsedBatches);
       setSelectedBatchId(savedSelectedBatch || parsedBatches[0]?.id);
     } else {
@@ -177,7 +205,11 @@ export function Inventory() {
       const defaultBatch: Batch = {
         id: "batch-all",
         name: "All Products",
-        productIds: products.map((p) => p.id),
+        items: products.map((p) => ({
+          productId: p.id,
+          quantity: p.quantity,
+          expiryDate: p.expiryDate,
+        })),
         createdAt: new Date().toISOString(),
       };
       setBatches([defaultBatch]);
@@ -204,10 +236,20 @@ export function Inventory() {
   // Get current batch
   const currentBatch = batches.find((b) => b.id === selectedBatchId);
 
-  // Get products for current batch
-  const getBatchProducts = (): InventoryProduct[] => {
-    if (!currentBatch) return [];
-    return products.filter((p) => currentBatch.productIds.includes(p.id));
+  // Get products for current batch with batch-specific quantities and expiry dates
+  const getBatchProducts = (): (InventoryProduct & { batchQuantity: number; batchExpiryDate: string })[] => {
+    if (!currentBatch || !currentBatch.items) return [];
+    return currentBatch.items
+      .map((item) => {
+        const product = products.find((p) => p.id === item.productId);
+        if (!product) return null;
+        return {
+          ...product,
+          batchQuantity: item.quantity,
+          batchExpiryDate: item.expiryDate,
+        };
+      })
+      .filter((item) => item !== null) as (InventoryProduct & { batchQuantity: number; batchExpiryDate: string })[];
   };
 
   // Get all products for the right panel
@@ -238,16 +280,21 @@ export function Inventory() {
   const suppliers = Array.from(new Set(products.map((p) => p.supplierId))).sort();
 
   // Batch management functions
-  const createNewBatch = () => {
+  const createNewBatch = (batchItems: BatchItem[]) => {
     if (!newBatchName.trim()) {
       alert("Please enter a batch name");
+      return;
+    }
+
+    if (batchItems.length === 0) {
+      alert("Please select at least one product for this batch");
       return;
     }
 
     const newBatch: Batch = {
       id: `batch-${Date.now()}`,
       name: newBatchName,
-      productIds: products.map((p) => p.id), // Start with all products
+      items: batchItems,
       createdAt: new Date().toISOString(),
     };
 
@@ -278,7 +325,7 @@ export function Inventory() {
     setBatches(
       batches.map((b) =>
         b.id === currentBatch.id
-          ? { ...b, productIds: b.productIds.filter((pid) => pid !== productId) }
+          ? { ...b, items: b.items.filter((item) => item.productId !== productId) }
           : b
       )
     );
@@ -287,11 +334,25 @@ export function Inventory() {
   const addProductToBatch = (productId: string) => {
     if (!currentBatch) return;
 
-    if (!currentBatch.productIds.includes(productId)) {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const itemExists = currentBatch.items.some((item) => item.productId === productId);
+    if (!itemExists) {
       setBatches(
         batches.map((b) =>
           b.id === currentBatch.id
-            ? { ...b, productIds: [...b.productIds, productId] }
+            ? {
+                ...b,
+                items: [
+                  ...b.items,
+                  {
+                    productId,
+                    quantity: product.quantity,
+                    expiryDate: product.expiryDate,
+                  },
+                ],
+              }
             : b
         )
       );
@@ -448,7 +509,10 @@ export function Inventory() {
             </button>
           </div>
           <button
-            onClick={() => setIsBatchModalOpen(true)}
+            onClick={() => {
+              setNewBatchName("");
+              setIsBatchModalOpen(true);
+            }}
             className="px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity w-fit"
           >
             ➕ Create New Batch
@@ -521,9 +585,6 @@ export function Inventory() {
                       Description
                     </th>
                     <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                      Price
-                    </th>
-                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                       Qty
                     </th>
                     <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden lg:table-cell">
@@ -537,7 +598,7 @@ export function Inventory() {
                 <tbody>
                   {paginatedBatchProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-3 py-6 text-center text-muted">
+                      <td colSpan={6} className="px-3 py-6 text-center text-muted">
                         No products in this batch
                       </td>
                     </tr>
@@ -581,26 +642,21 @@ export function Inventory() {
                           <td className="px-3 py-3 text-navy hidden sm:table-cell max-w-xs truncate">
                             {product.description}
                           </td>
-                          <td className="px-3 py-3 text-navy font-semibold whitespace-nowrap">
-                            ₱{product.unitPrice.toLocaleString("en-PH", {
-                              minimumFractionDigits: 2,
-                            })}
-                          </td>
                           <td className="px-3 py-3 whitespace-nowrap">
                             <span
                               className={`px-2 py-1 rounded text-xs font-bold text-white ${
-                                stockStatus.status === "critical"
+                                product.batchQuantity < product.reorderPoint
                                   ? "bg-red"
-                                  : stockStatus.status === "warning"
+                                  : product.batchQuantity < product.reorderPoint * 0.8
                                     ? "bg-gold"
                                     : "bg-green"
                               }`}
                             >
-                              {product.quantity}
+                              {product.batchQuantity}
                             </span>
                           </td>
                           <td className="px-3 py-3 text-navy hidden lg:table-cell whitespace-nowrap">
-                            {product.expiryDate}
+                            {product.batchExpiryDate}
                           </td>
                           <td className="px-3 py-3 whitespace-nowrap">
                             <div className="flex gap-1">
@@ -677,9 +733,30 @@ export function Inventory() {
 
         {/* Right Column: All Products Panel (35%) */}
         <div className="bg-white rounded-2xl border border-border p-6 h-fit">
-          <h2 className="font-rajdhani text-lg font-bold text-navy mb-4 letter-spacing-tight">
-            All Products
-          </h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-rajdhani text-lg font-bold text-navy letter-spacing-tight">
+              All Products
+            </h2>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setShowDeleteButtons(!showDeleteButtons)}
+                className="px-2 py-1 bg-white border border-border text-navy rounded text-xs font-semibold hover:bg-off-white"
+                title={showDeleteButtons ? "Hide delete buttons" : "Show delete buttons"}
+              >
+                {showDeleteButtons ? "🔒" : "🔓"}
+              </button>
+              <button
+                onClick={() => {
+                  resetForm();
+                  setIsModalOpen(true);
+                }}
+                className="px-2 py-1 bg-green text-white rounded text-xs font-semibold hover:opacity-90"
+                title="Add new product"
+              >
+                ＋
+              </button>
+            </div>
+          </div>
           <div className="space-y-2 max-h-96 overflow-y-auto">
             {allProducts.length === 0 ? (
               <div className="text-xs text-muted text-center py-4">
@@ -687,7 +764,7 @@ export function Inventory() {
               </div>
             ) : (
               allProducts.map((product) => {
-                const isInBatch = currentBatch?.productIds.includes(product.id);
+                const isInBatch = currentBatch?.items?.some((item) => item.productId === product.id);
                 return (
                   <div
                     key={product.id}
@@ -706,21 +783,24 @@ export function Inventory() {
                         })}
                       </div>
                     </div>
-                    <button
-                      onClick={() =>
-                        isInBatch
-                          ? removeProductFromBatch(product.id)
-                          : addProductToBatch(product.id)
-                      }
-                      className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
-                        isInBatch
-                          ? "bg-red text-white hover:opacity-90"
-                          : "bg-green text-white hover:opacity-90"
-                      }`}
-                      title={isInBatch ? "Remove from batch" : "Add to batch"}
-                    >
-                      {isInBatch ? "✕" : "＋"}
-                    </button>
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => handleEdit(product)}
+                        className="px-2 py-1 bg-gold text-white rounded text-xs font-semibold hover:opacity-90"
+                        title="Edit product"
+                      >
+                        ✏
+                      </button>
+                      {showDeleteButtons && (
+                        <button
+                          onClick={() => handleDelete(product.id)}
+                          className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                          title="Delete product"
+                        >
+                          🗑
+                        </button>
+                      )}
+                    </div>
                   </div>
                 );
               })
@@ -755,9 +835,18 @@ export function Inventory() {
           }}
           onDeleteBatch={deleteBatch}
           onCreateBatch={createNewBatch}
+          onEditBatch={(batchId, updatedItems) => {
+            setBatches(
+              batches.map((b) =>
+                b.id === batchId ? { ...b, items: updatedItems } : b
+              )
+            );
+            setIsBatchModalOpen(false);
+          }}
           onClose={() => setIsBatchModalOpen(false)}
           newBatchName={newBatchName}
           setNewBatchName={setNewBatchName}
+          products={products}
         />
       )}
 
@@ -908,21 +997,6 @@ function Modal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-navy mb-1">
-                Quantity *
-              </label>
-              <input
-                type="number"
-                min="0"
-                value={formData.quantity}
-                onChange={(e) =>
-                  setFormData({ ...formData, quantity: parseInt(e.target.value) })
-                }
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-                placeholder="0"
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-navy mb-1">
                 Reorder Point *
               </label>
               <input
@@ -934,22 +1008,6 @@ function Modal({
                 }
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
                 placeholder="100"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-navy mb-1">
-                Expiry Date *
-              </label>
-              <input
-                type="date"
-                value={formData.expiryDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, expiryDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
               />
             </div>
             <div>
@@ -995,104 +1053,435 @@ function BatchModal({
   onSelectBatch,
   onDeleteBatch,
   onCreateBatch,
+  onEditBatch,
   onClose,
   newBatchName,
   setNewBatchName,
+  products,
 }: {
   batches: Batch[];
   selectedBatchId: string;
   onSelectBatch: (batchId: string) => void;
   onDeleteBatch: (batchId: string) => void;
-  onCreateBatch: () => void;
+  onCreateBatch: (items: BatchItem[]) => void;
+  onEditBatch: (batchId: string, items: BatchItem[]) => void;
   onClose: () => void;
   newBatchName: string;
   setNewBatchName: (name: string) => void;
+  products: InventoryProduct[];
 }) {
+  const [isCreatingBatch, setIsCreatingBatch] = useState(false);
+  const [isEditingBatch, setIsEditingBatch] = useState(false);
+  const [editingBatchId, setEditingBatchId] = useState<string>("");
+  const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
+
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl border border-border max-w-md w-full p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="font-rajdhani text-lg font-bold text-navy">
-            Manage Batches
+      <div className="bg-white rounded-2xl border border-border max-w-2xl w-full max-h-screen overflow-y-auto">
+        <div className="sticky top-0 bg-navy-mid px-6 py-4 flex items-center justify-between border-b border-border">
+          <h2 className="font-rajdhani text-lg font-bold text-white">
+            {isCreatingBatch ? "Create New Batch" : isEditingBatch ? "Edit Batch" : "Manage Batches"}
           </h2>
           <button
-            onClick={onClose}
-            className="text-navy hover:opacity-70 text-2xl"
+            onClick={() => {
+              setIsCreatingBatch(false);
+              setIsEditingBatch(false);
+              setBatchItems([]);
+              onClose();
+            }}
+            className="text-white hover:opacity-70 text-2xl"
           >
             ×
           </button>
         </div>
 
-        {/* Existing Batches */}
-        <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
-          <h3 className="text-xs font-semibold text-muted uppercase">
-            Available Batches
-          </h3>
-          {batches.map((batch) => (
-            <div
-              key={batch.id}
-              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
-                selectedBatchId === batch.id
-                  ? "border-accent-2 bg-accent-2/10"
-                  : "border-border hover:bg-off-white"
-              }`}
-              onClick={() => onSelectBatch(batch.id)}
-            >
-              <div className="flex-1">
-                <div className="text-sm font-semibold text-navy">{batch.name}</div>
-                <div className="text-xs text-muted">
-                  {batch.productIds.length} products
-                </div>
+        <div className="p-6">
+          {!isCreatingBatch && !isEditingBatch ? (
+            <>
+              {/* Existing Batches */}
+              <div className="space-y-2 mb-6">
+                <h3 className="text-xs font-semibold text-muted uppercase mb-3">
+                  Available Batches
+                </h3>
+                {batches.map((batch) => (
+                  <div
+                    key={batch.id}
+                    className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                      selectedBatchId === batch.id
+                        ? "border-accent-2 bg-accent-2/10"
+                        : "border-border hover:bg-off-white"
+                    }`}
+                    onClick={() => onSelectBatch(batch.id)}
+                  >
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-navy">{batch.name}</div>
+                      <div className="text-xs text-muted">
+                        {batch.items.length} product{batch.items.length !== 1 ? "s" : ""}
+                      </div>
+                    </div>
+                    <div className="flex gap-1">
+                      {batch.id !== "batch-all" && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingBatchId(batch.id);
+                              setIsEditingBatch(true);
+                              setBatchItems(batch.items);
+                            }}
+                            className="px-2 py-1 bg-gold text-white rounded text-xs font-semibold hover:opacity-90"
+                            title="Edit batch"
+                          >
+                            ✏
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteBatch(batch.id);
+                            }}
+                            className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                            title="Delete batch"
+                          >
+                            🗑
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
-              {batch.id !== "batch-all" && (
+
+              {/* Create New Batch Button */}
+              <div className="flex justify-end">
                 <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onDeleteBatch(batch.id);
+                  onClick={() => {
+                    setIsCreatingBatch(true);
+                    setBatchItems([]);
+                    setNewBatchName("");
                   }}
-                  className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
-                  title="Delete batch"
+                  className="px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
                 >
-                  🗑
+                  ➕ Create New Batch
                 </button>
-              )}
-            </div>
-          ))}
+              </div>
+            </>
+          ) : (
+            <CreateBatchForm
+              newBatchName={newBatchName}
+              setNewBatchName={setNewBatchName}
+              batchItems={batchItems}
+              setBatchItems={setBatchItems}
+              isEditing={isEditingBatch}
+              onCreateBatch={() => {
+                if (isEditingBatch) {
+                  onEditBatch(editingBatchId, batchItems);
+                  setIsEditingBatch(false);
+                } else {
+                  onCreateBatch(batchItems);
+                  setIsCreatingBatch(false);
+                }
+                setBatchItems([]);
+              }}
+              onCancel={() => {
+                setIsCreatingBatch(false);
+                setIsEditingBatch(false);
+                setBatchItems([]);
+              }}
+            />
+          )}
         </div>
+      </div>
+    </div>
+  );
+}
 
-        {/* Create New Batch */}
-        <div className="space-y-3 pt-6 border-t border-border">
-          <h3 className="text-xs font-semibold text-muted uppercase">
-            Create New Batch
-          </h3>
-          <input
-            type="text"
-            value={newBatchName}
-            onChange={(e) => setNewBatchName(e.target.value)}
-            placeholder="Enter batch name"
-            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-            onKeyPress={(e) => {
-              if (e.key === "Enter") {
-                onCreateBatch();
-              }
-            }}
-          />
-          <button
-            onClick={onCreateBatch}
-            className="w-full px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
-          >
-            ➕ Create Batch
-          </button>
-        </div>
+// Create Batch Form Component
+function CreateBatchForm({
+  newBatchName,
+  setNewBatchName,
+  batchItems,
+  setBatchItems,
+  onCreateBatch,
+  onCancel,
+}: {
+  newBatchName: string;
+  setNewBatchName: (name: string) => void;
+  batchItems: BatchItem[];
+  setBatchItems: (items: BatchItem[]) => void;
+  onCreateBatch: () => void;
+  onCancel: () => void;
+}) {
+  const [products, setProducts] = useState<InventoryProduct[]>([
+    {
+      id: "1",
+      sku: "7700165",
+      description: "FF Bossing Hatdogs KingSize",
+      unitPrice: 148.57,
+      supplierId: "SUP-003",
+      weight: 1.0,
+      quantity: 56,
+      expiryDate: "2026-05-05",
+      imageFilename: "ff-hatdogs-kingsize.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-28",
+    },
+    {
+      id: "2",
+      sku: "7700169",
+      description: "FF Bossing Cheesedog KingSize",
+      unitPrice: 156.19,
+      supplierId: "SUP-003",
+      weight: 1.0,
+      quantity: 38,
+      expiryDate: "2026-05-18",
+      imageFilename: "ff-cheesedog-kingsize.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-27",
+    },
+    {
+      id: "3",
+      sku: "7700160",
+      description: "FF Bossing Chicken Franks King",
+      unitPrice: 163.81,
+      supplierId: "SUP-002",
+      weight: 1.0,
+      quantity: 130,
+      expiryDate: "2026-06-10",
+      imageFilename: "ff-chicken-franks.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-26",
+    },
+    {
+      id: "4",
+      sku: "7702039",
+      description: "FF Bossing Cheesedogs",
+      unitPrice: 36.19,
+      supplierId: "SUP-004",
+      weight: 1.0,
+      quantity: 148,
+      expiryDate: "2026-06-22",
+      imageFilename: "ff-cheesedogs.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-25",
+    },
+    {
+      id: "5",
+      sku: "7700181",
+      description: "FF Bossing Cheesedog Footlong",
+      unitPrice: 153.33,
+      supplierId: "SUP-005",
+      weight: 1.0,
+      quantity: 148,
+      expiryDate: "2026-07-01",
+      imageFilename: "ff-cheesedog-footlong.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-24",
+    },
+    {
+      id: "6",
+      sku: "7702041",
+      description: "FF Bossing Chicken Hd Regular",
+      unitPrice: 35.34,
+      supplierId: "SUP-002",
+      weight: 1.0,
+      quantity: 73,
+      expiryDate: "2026-06-30",
+      imageFilename: "ff-chicken-hd-regular.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-23",
+    },
+    {
+      id: "7",
+      sku: "7702031",
+      description: "FF Bossing Hungarian Sausage w/Cheese",
+      unitPrice: 129.32,
+      supplierId: "SUP-005",
+      weight: 1.0,
+      quantity: 14,
+      expiryDate: "2026-05-12",
+      imageFilename: "ff-hungarian-sausage.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-22",
+    },
+    {
+      id: "8",
+      sku: "770218",
+      description: "McCain Fries",
+      unitPrice: 500.0,
+      supplierId: "SUP-004",
+      weight: 12.0,
+      quantity: 199,
+      expiryDate: "2026-08-15",
+      imageFilename: "mccain-fries.jpg",
+      reorderPoint: 100,
+      lastUpdated: "2026-04-21",
+    },
+  ]);
 
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={onClose}
-            className="px-4 py-2 border border-border rounded-lg font-semibold text-sm hover:bg-off-white"
-          >
-            Close
-          </button>
+  const addItemToBatch = (productId: string) => {
+    const product = products.find((p) => p.id === productId);
+    if (!product) return;
+
+    const alreadyAdded = batchItems.some((item) => item.productId === productId);
+    if (alreadyAdded) {
+      alert("This product is already in the batch");
+      return;
+    }
+
+    setBatchItems([
+      ...batchItems,
+      {
+        productId,
+        quantity: product.quantity,
+        expiryDate: product.expiryDate,
+      },
+    ]);
+  };
+
+  const removeItemFromBatch = (productId: string) => {
+    setBatchItems(batchItems.filter((item) => item.productId !== productId));
+  };
+
+  const updateBatchItem = (productId: string, field: "quantity" | "expiryDate", value: any) => {
+    setBatchItems(
+      batchItems.map((item) =>
+        item.productId === productId ? { ...item, [field]: value } : item
+      )
+    );
+  };
+
+  const getProductName = (productId: string) => {
+    return products.find((p) => p.id === productId)?.description || "";
+  };
+
+  const getProductSku = (productId: string) => {
+    return products.find((p) => p.id === productId)?.sku || "";
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Batch Name */}
+      <div>
+        <label className="block text-xs font-semibold text-navy mb-2">
+          Batch Name *
+        </label>
+        <input
+          type="text"
+          value={newBatchName}
+          onChange={(e) => setNewBatchName(e.target.value)}
+          placeholder="e.g., Morning Delivery, Q1 Restock"
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+        />
+      </div>
+
+      {/* Product Selection */}
+      <div>
+        <label className="block text-xs font-semibold text-navy mb-2">
+          Select Products to Add *
+        </label>
+        <select
+          onChange={(e) => {
+            if (e.target.value) {
+              addItemToBatch(e.target.value);
+              e.target.value = "";
+            }
+          }}
+          className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+        >
+          <option value="">Choose a product to add...</option>
+          {products
+            .filter((p) => !batchItems.some((item) => item.productId === p.id))
+            .map((product) => (
+              <option key={product.id} value={product.id}>
+                {product.sku} - {product.description}
+              </option>
+            ))}
+        </select>
+      </div>
+
+      {/* Selected Items Table */}
+      {batchItems.length > 0 && (
+        <div>
+          <h3 className="text-xs font-semibold text-navy mb-3">Batch Items</h3>
+          <div className="border border-border rounded-lg overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="bg-navy-mid border-b border-border">
+                  <th className="px-3 py-2 text-left text-muted font-bold">SKU</th>
+                  <th className="px-3 py-2 text-left text-muted font-bold">Description</th>
+                  <th className="px-3 py-2 text-left text-muted font-bold">Quantity</th>
+                  <th className="px-3 py-2 text-left text-muted font-bold">Expiry Date</th>
+                  <th className="px-3 py-2 text-left text-muted font-bold">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {batchItems.map((item) => (
+                  <tr key={item.productId} className="border-b border-border hover:bg-off-white/50">
+                    <td className="px-3 py-2 font-semibold text-navy">
+                      {getProductSku(item.productId)}
+                    </td>
+                    <td className="px-3 py-2 text-navy max-w-xs truncate">
+                      {getProductName(item.productId)}
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="number"
+                        min="1"
+                        value={item.quantity}
+                        onChange={(e) =>
+                          updateBatchItem(
+                            item.productId,
+                            "quantity",
+                            parseInt(e.target.value) || 1
+                          )
+                        }
+                        className="w-16 px-2 py-1 border border-border rounded text-sm focus:outline-none focus:border-accent-2"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <input
+                        type="date"
+                        value={item.expiryDate}
+                        onChange={(e) =>
+                          updateBatchItem(item.productId, "expiryDate", e.target.value)
+                        }
+                        className="w-28 px-2 py-1 border border-border rounded text-sm focus:outline-none focus:border-accent-2"
+                      />
+                    </td>
+                    <td className="px-3 py-2">
+                      <button
+                        onClick={() => removeItemFromBatch(item.productId)}
+                        className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                      >
+                        Remove
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <div className="mt-2 text-xs text-muted">
+            Total items in batch: {batchItems.length}
+          </div>
         </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex gap-2 justify-end pt-4 border-t border-border">
+        <button
+          onClick={onCancel}
+          className="px-4 py-2 border border-border rounded-lg font-semibold text-sm hover:bg-off-white"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={onCreateBatch}
+          disabled={!newBatchName.trim() || batchItems.length === 0}
+          className="px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          ✓ Create Batch
+        </button>
       </div>
     </div>
   );
