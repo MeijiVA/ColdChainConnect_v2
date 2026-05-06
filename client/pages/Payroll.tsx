@@ -228,7 +228,7 @@ export function Payroll() {
   };
 
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto space-y-6">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -373,7 +373,7 @@ function CommissionsSection({
 }) {
   return (
     <div className="bg-white rounded-2xl border border-border overflow-hidden">
-      <div className="overflow-x-auto text-xs md:text-sm">
+      <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
         <table className="w-full">
           <thead>
             <tr>
@@ -499,7 +499,7 @@ function PayrollSection({
 }) {
   return (
     <div className="bg-white rounded-2xl border border-border overflow-hidden">
-      <div className="overflow-x-auto text-xs md:text-sm">
+      <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
         <table className="w-full">
           <thead>
             <tr>
@@ -691,7 +691,7 @@ function DisbursementsSection({
 
       {/* Disbursement Records */}
       <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="overflow-x-auto text-xs md:text-sm">
+        <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
           <table className="w-full">
             <thead>
               <tr>

@@ -161,7 +161,7 @@ export function Settings() {
   };
 
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide">
       <div className="max-w-4xl">
         {/* Header */}
         <div className="mb-6">
@@ -466,7 +466,7 @@ export function Settings() {
               </div>
 
               {/* Audit Log Table */}
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border">

@@ -210,7 +210,7 @@ export function NotificationPanel({ onClose }: NotificationPanelProps) {
         )}
 
         {/* Notifications List */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto scrollbar-hide">
           {filteredNotifications.length === 0 ? (
             <div className="flex flex-col items-center justify-center h-full p-4 text-center">
               <div className="text-4xl mb-3">📭</div>

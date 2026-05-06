@@ -305,7 +305,7 @@ export function Reports() {
   };
 
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -316,7 +316,7 @@ export function Reports() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mb-6 border-b border-border pb-4 overflow-x-auto">
+        <div className="flex flex-wrap gap-2 mb-6 border-b border-border pb-4 overflow-x-auto scrollbar-hide">
           {[
             { id: "sales", label: "Sales Reports", icon: "📊" },
             { id: "inventory", label: "Inventory", icon: "📦" },
@@ -435,7 +435,7 @@ export function Reports() {
                 Current stock levels, product details, and expiry dates
               </p>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -528,7 +528,7 @@ export function Reports() {
                 Customer transaction details and purchase patterns
               </p>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -605,7 +605,7 @@ export function Reports() {
                 Inventory sourced from each supplier
               </p>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -747,7 +747,7 @@ export function Reports() {
                 Profit margins and total profit per product
               </p>
 
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto scrollbar-hide">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
