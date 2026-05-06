@@ -34,10 +34,10 @@ const AppContent = () => {
     return <Login onLogin={() => setIsLoggedIn(true)} />;
   }
 
-  const renderPanel = () => {
+  const renderPanel = (props?: { onPanelChange?: (panel: string) => void }) => {
     switch (activePanel) {
       case "dashboard":
-        return <Dashboard />;
+        return <Dashboard onPanelChange={props?.onPanelChange} />;
       case "inventory":
         return <Inventory />;
       case "sales":
@@ -57,7 +57,7 @@ const AppContent = () => {
       case "settings":
         return <Settings />;
       default:
-        return <Dashboard />;
+        return <Dashboard onPanelChange={props?.onPanelChange} />;
     }
   };
 
@@ -84,7 +84,7 @@ const AppContent = () => {
         <div className="hidden md:block md:w-72 flex-shrink-0" />
         <div className="flex-1 flex flex-col bg-off-white min-w-0">
           {/* Panel Content */}
-          {renderPanel()}
+          {renderPanel({ onPanelChange: setActivePanel })}
         </div>
       </div>
     </div>

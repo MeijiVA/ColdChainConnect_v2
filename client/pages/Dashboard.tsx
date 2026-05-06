@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-export function Dashboard() {
+export function Dashboard({ onPanelChange }: { onPanelChange?: (panel: string) => void }) {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly" | "yearly">(
     "monthly"
   );
@@ -71,16 +71,16 @@ export function Dashboard() {
           Quick Actions
         </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <button className="px-4 py-3 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+          <button onClick={() => onPanelChange?.("reports")} className="px-4 py-3 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
             📋 Generate Report
           </button>
-          <button className="px-4 py-3 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+          <button onClick={() => onPanelChange?.("sales")} className="px-4 py-3 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
             ➕ New Transaction
           </button>
-          <button className="px-4 py-3 bg-gold text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+          <button onClick={() => onPanelChange?.("inventory")} className="px-4 py-3 bg-gold text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
             📦 Manage Inventory
           </button>
-          <button className="px-4 py-3 bg-navy text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+          <button onClick={() => onPanelChange?.("trucks")} className="px-4 py-3 bg-navy text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
             🚚 Track Trucks
           </button>
         </div>

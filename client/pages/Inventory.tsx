@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 // REQ-INV-001: Product interface with all required fields
 interface InventoryProduct {
@@ -14,6 +14,19 @@ interface InventoryProduct {
   reorderPoint: number; // REQ-INV-008: Low-stock alert threshold
   lastUpdated: string;
 }
+
+interface Batch {
+  id: string;
+  name: string;
+  productIds: string[]; // references to products from master list
+  createdAt: string;
+}
+
+// localStorage keys
+const STORAGE_KEYS = {
+  BATCHES: "inventory_batches",
+  SELECTED_BATCH: "inventory_selected_batch",
+};
 
 export function Inventory() {
   const [products, setProducts] = useState<InventoryProduct[]>([
@@ -123,13 +136,15 @@ export function Inventory() {
     },
   ]);
 
-  // Search and filter state - REQ-INV-013
+  const [batches, setBatches] = useState<Batch[]>([]);
+  const [selectedBatchId, setSelectedBatchId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterSupplier, setFilterSupplier] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<InventoryProduct | null>(null);
   const [qrProduct, setQrProduct] = useState<InventoryProduct | null>(null);
+  const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
+  const [newBatchName, setNewBatchName] = useState("");
 
   // Form state for add/edit
   const [formData, setFormData] = useState<InventoryProduct>({
@@ -146,34 +161,145 @@ export function Inventory() {
     lastUpdated: new Date().toISOString().split("T")[0],
   });
 
-  const itemsPerPage = 10; // REQ-INV-010: 10 records per page
+  const itemsPerPage = 10;
 
-  // REQ-INV-013: Filter products based on search and filters
-  const filteredProducts = products.filter((product) => {
-    const matchesSearch =
+  // Initialize batches from localStorage on mount
+  useEffect(() => {
+    const savedBatches = localStorage.getItem(STORAGE_KEYS.BATCHES);
+    const savedSelectedBatch = localStorage.getItem(STORAGE_KEYS.SELECTED_BATCH);
+
+    if (savedBatches) {
+      const parsedBatches = JSON.parse(savedBatches);
+      setBatches(parsedBatches);
+      setSelectedBatchId(savedSelectedBatch || parsedBatches[0]?.id);
+    } else {
+      // Create default "All Products" batch
+      const defaultBatch: Batch = {
+        id: "batch-all",
+        name: "All Products",
+        productIds: products.map((p) => p.id),
+        createdAt: new Date().toISOString(),
+      };
+      setBatches([defaultBatch]);
+      setSelectedBatchId(defaultBatch.id);
+      localStorage.setItem(STORAGE_KEYS.BATCHES, JSON.stringify([defaultBatch]));
+      localStorage.setItem(STORAGE_KEYS.SELECTED_BATCH, defaultBatch.id);
+    }
+  }, []);
+
+  // Persist batches to localStorage whenever they change
+  useEffect(() => {
+    if (batches.length > 0) {
+      localStorage.setItem(STORAGE_KEYS.BATCHES, JSON.stringify(batches));
+    }
+  }, [batches]);
+
+  // Persist selected batch to localStorage
+  useEffect(() => {
+    if (selectedBatchId) {
+      localStorage.setItem(STORAGE_KEYS.SELECTED_BATCH, selectedBatchId);
+    }
+  }, [selectedBatchId]);
+
+  // Get current batch
+  const currentBatch = batches.find((b) => b.id === selectedBatchId);
+
+  // Get products for current batch
+  const getBatchProducts = (): InventoryProduct[] => {
+    if (!currentBatch) return [];
+    return products.filter((p) => currentBatch.productIds.includes(p.id));
+  };
+
+  // Get all products for the right panel
+  const getAllProducts = (): InventoryProduct[] => {
+    return products;
+  };
+
+  const batchProducts = getBatchProducts();
+  const allProducts = getAllProducts();
+
+  // Filter batch products by search
+  const filteredBatchProducts = batchProducts.filter((product) => {
+    return (
       product.sku.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesSupplier =
-      filterSupplier === "all" || product.supplierId === filterSupplier;
-    return matchesSearch && matchesSupplier;
+      product.description.toLowerCase().includes(searchQuery.toLowerCase())
+    );
   });
 
-  // REQ-INV-010: Pagination
-  const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+  // Pagination for batch products
+  const totalPages = Math.ceil(filteredBatchProducts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedProducts = filteredProducts.slice(
+  const paginatedBatchProducts = filteredBatchProducts.slice(
     startIndex,
     startIndex + itemsPerPage
   );
 
-  // Get unique suppliers for filter
-  const suppliers = Array.from(
-    new Set(products.map((p) => p.supplierId))
-  ).sort();
+  // Get unique suppliers
+  const suppliers = Array.from(new Set(products.map((p) => p.supplierId))).sort();
 
-  // REQ-INV-003 & REQ-INV-004: Handle add/edit product
+  // Batch management functions
+  const createNewBatch = () => {
+    if (!newBatchName.trim()) {
+      alert("Please enter a batch name");
+      return;
+    }
+
+    const newBatch: Batch = {
+      id: `batch-${Date.now()}`,
+      name: newBatchName,
+      productIds: products.map((p) => p.id), // Start with all products
+      createdAt: new Date().toISOString(),
+    };
+
+    setBatches([...batches, newBatch]);
+    setSelectedBatchId(newBatch.id);
+    setNewBatchName("");
+    setIsBatchModalOpen(false);
+  };
+
+  const deleteBatch = (batchId: string) => {
+    if (batchId === "batch-all") {
+      alert("Cannot delete the default 'All Products' batch");
+      return;
+    }
+
+    if (confirm("Are you sure you want to delete this batch?")) {
+      setBatches(batches.filter((b) => b.id !== batchId));
+      if (selectedBatchId === batchId) {
+        const firstBatch = batches.find((b) => b.id !== batchId);
+        setSelectedBatchId(firstBatch?.id || "batch-all");
+      }
+    }
+  };
+
+  const removeProductFromBatch = (productId: string) => {
+    if (!currentBatch) return;
+
+    setBatches(
+      batches.map((b) =>
+        b.id === currentBatch.id
+          ? { ...b, productIds: b.productIds.filter((pid) => pid !== productId) }
+          : b
+      )
+    );
+  };
+
+  const addProductToBatch = (productId: string) => {
+    if (!currentBatch) return;
+
+    if (!currentBatch.productIds.includes(productId)) {
+      setBatches(
+        batches.map((b) =>
+          b.id === currentBatch.id
+            ? { ...b, productIds: [...b.productIds, productId] }
+            : b
+        )
+      );
+    }
+  };
+
+  // Product management functions
   const handleSaveProduct = () => {
-    // REQ-INV-014: Validation - positive decimals for unit price and weight
     if (formData.unitPrice <= 0) {
       alert("Unit price must be a positive number");
       return;
@@ -188,7 +314,6 @@ export function Inventory() {
     }
 
     if (selectedProduct) {
-      // Edit existing
       setProducts(
         products.map((p) =>
           p.id === selectedProduct.id
@@ -197,13 +322,16 @@ export function Inventory() {
         )
       );
     } else {
-      // Add new
       const newProduct = {
         ...formData,
         id: Date.now().toString(),
         lastUpdated: new Date().toISOString().split("T")[0],
       };
       setProducts([...products, newProduct]);
+      // Add new product to current batch
+      if (currentBatch) {
+        addProductToBatch(newProduct.id);
+      }
     }
 
     resetForm();
@@ -213,6 +341,13 @@ export function Inventory() {
   const handleDelete = (id: string) => {
     if (confirm("Are you sure you want to delete this product?")) {
       setProducts(products.filter((p) => p.id !== id));
+      // Remove from all batches
+      setBatches(
+        batches.map((b) => ({
+          ...b,
+          productIds: b.productIds.filter((pid) => pid !== id),
+        }))
+      );
     }
   };
 
@@ -222,7 +357,6 @@ export function Inventory() {
     setIsModalOpen(true);
   };
 
-  // REQ-INV-015: QR Code generation when product is viewed
   const handleViewQR = (product: InventoryProduct) => {
     setQrProduct(product);
   };
@@ -244,7 +378,6 @@ export function Inventory() {
     setSelectedProduct(null);
   };
 
-  // Get stock status
   const getStockStatus = (product: InventoryProduct) => {
     if (product.quantity < product.reorderPoint) {
       return { status: "critical", label: "Low Stock" };
@@ -255,7 +388,6 @@ export function Inventory() {
     return { status: "ok", label: "OK" };
   };
 
-  // Get expiry status
   const getExpiryStatus = (expiryDate: string) => {
     const today = new Date();
     const expiry = new Date(expiryDate);
@@ -303,13 +435,34 @@ export function Inventory() {
         </div>
       </div>
 
-      {/* Search and Filter - REQ-INV-013 */}
+      {/* Batch Selector and Controls */}
+      <div className="bg-white rounded-2xl border border-border p-6 space-y-4">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-navy">Current Batch</label>
+            <button
+              onClick={() => setIsBatchModalOpen(true)}
+              className="px-4 py-2 bg-navy text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity w-fit"
+            >
+              📦 {currentBatch?.name || "Select Batch"}
+            </button>
+          </div>
+          <button
+            onClick={() => setIsBatchModalOpen(true)}
+            className="px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity w-fit"
+          >
+            ➕ Create New Batch
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
       <div className="flex flex-col md:flex-row gap-3">
         <div className="flex-1 flex items-center bg-navy-mid border border-border rounded-lg px-3 gap-2">
           <span className="text-muted">🔍</span>
           <input
             type="text"
-            placeholder="Search by SKU, description, supplier…"
+            placeholder="Search by SKU, description…"
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -318,39 +471,24 @@ export function Inventory() {
             className="flex-1 bg-transparent border-none text-white placeholder-muted py-2 outline-none text-sm"
           />
         </div>
-        <select
-          value={filterSupplier}
-          onChange={(e) => {
-            setFilterSupplier(e.target.value);
-            setCurrentPage(1);
-          }}
-          className="px-3 py-2 bg-navy-mid border border-border text-white rounded-lg text-sm outline-none cursor-pointer"
-        >
-          <option value="all">All Suppliers</option>
-          {suppliers.map((supplier) => (
-            <option key={supplier} value={supplier}>
-              {supplier}
-            </option>
-          ))}
-        </select>
       </div>
 
       {/* Inventory Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <StatsBox
           label="Total Items"
-          value={products.length.toString()}
+          value={batchProducts.length.toString()}
           icon="📦"
         />
         <StatsBox
           label="Low Stock"
-          value={products.filter((p) => p.quantity < p.reorderPoint).length.toString()}
+          value={batchProducts.filter((p) => p.quantity < p.reorderPoint).length.toString()}
           icon="⚠️"
           color="red"
         />
         <StatsBox
           label="Expiring Soon"
-          value={products.filter((p) => {
+          value={batchProducts.filter((p) => {
             const status = getExpiryStatus(p.expiryDate);
             return status.status === "expiring" || status.status === "expired";
           }).length.toString()}
@@ -359,153 +497,234 @@ export function Inventory() {
         />
         <StatsBox
           label="Total Value"
-          value={`₱${products.reduce((sum, p) => sum + p.unitPrice * p.quantity, 0).toLocaleString("en-PH", { maximumFractionDigits: 0 })}`}
+          value={`₱${batchProducts.reduce((sum, p) => sum + p.unitPrice * p.quantity, 0).toLocaleString("en-PH", { maximumFractionDigits: 0 })}`}
           icon="💰"
         />
       </div>
 
-      {/* Products Table - REQ-INV-010: Pagination */}
-      <div className="bg-white rounded-2xl border border-border overflow-hidden">
-        <div className="overflow-x-auto text-xs md:text-sm">
-          <table className="w-full">
-            <thead>
-              <tr>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Status
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  SKU Code
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden sm:table-cell">
-                  Description
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Supplier
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Price
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Qty
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden lg:table-cell">
-                  Expiry
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Actions
-                </th>
-              </tr>
-            </thead>
-            <tbody>
-              {paginatedProducts.map((product) => {
-                const stockStatus = getStockStatus(product);
-                const expiryStatus = getExpiryStatus(product.expiryDate);
-                return (
-                  <tr
-                    key={product.id}
-                    className="border-b border-border hover:bg-off-white/50 transition-colors"
-                  >
-                    <td className="px-3 py-3 whitespace-nowrap">
-                      <div className="flex flex-col gap-1">
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-xs font-bold badge-${stockStatus.status === "critical" ? "red" : stockStatus.status === "warning" ? "gold" : "green"}`}
-                        >
-                          {stockStatus.label}
-                        </span>
-                        <span
-                          className={`inline-block px-2 py-0.5 rounded text-xs font-bold badge-${expiryStatus.status === "expired" || expiryStatus.status === "expiring" ? "red" : "blue"}`}
-                        >
-                          {expiryStatus.label}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-3 py-3 text-navy font-semibold whitespace-nowrap">
-                      {product.sku}
-                    </td>
-                    <td className="px-3 py-3 text-navy hidden sm:table-cell max-w-xs truncate">
-                      {product.description}
-                    </td>
-                    <td className="px-3 py-3 text-navy whitespace-nowrap">
-                      {product.supplierId}
-                    </td>
-                    <td className="px-3 py-3 text-navy font-semibold whitespace-nowrap">
-                      ₱{product.unitPrice.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-1 rounded text-xs font-bold text-white ${stockStatus.status === "critical" ? "bg-red" : stockStatus.status === "warning" ? "bg-gold" : "bg-green"}`}>
-                        {product.quantity}
-                      </span>
-                    </td>
-                    <td className="px-3 py-3 text-navy hidden lg:table-cell whitespace-nowrap">
-                      {product.expiryDate}
-                    </td>
-                    <td className="px-3 py-3 whitespace-nowrap">
-                      <div className="flex gap-1">
-                        <button
-                          onClick={() => handleViewQR(product)}
-                          className="px-2 py-1 bg-white border border-border text-navy rounded text-xs font-semibold hover:bg-off-white"
-                          title="View QR Code"
-                        >
-                          ⬜
-                        </button>
-                        <button
-                          onClick={() => handleEdit(product)}
-                          className="px-2 py-1 bg-gold text-white rounded text-xs font-semibold hover:opacity-90"
-                          title="Edit"
-                        >
-                          ✏
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
-                          title="Delete"
-                        >
-                          🗑
-                        </button>
-                      </div>
-                    </td>
+      {/* Two-Column Layout: Batch Table (Left 65%) + All Products Panel (Right 35%) */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column: Batch Products Table (65%) */}
+        <div className="lg:col-span-2">
+          <div className="bg-white rounded-2xl border border-border overflow-hidden">
+            <div className="overflow-x-auto text-xs md:text-sm">
+              <table className="w-full">
+                <thead>
+                  <tr>
+                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                      Status
+                    </th>
+                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                      SKU Code
+                    </th>
+                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden sm:table-cell">
+                      Description
+                    </th>
+                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                      Price
+                    </th>
+                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                      Qty
+                    </th>
+                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden lg:table-cell">
+                      Expiry
+                    </th>
+                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                      Actions
+                    </th>
                   </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {paginatedBatchProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={7} className="px-3 py-6 text-center text-muted">
+                        No products in this batch
+                      </td>
+                    </tr>
+                  ) : (
+                    paginatedBatchProducts.map((product) => {
+                      const stockStatus = getStockStatus(product);
+                      const expiryStatus = getExpiryStatus(product.expiryDate);
+                      return (
+                        <tr
+                          key={product.id}
+                          className="border-b border-border hover:bg-off-white/50 transition-colors"
+                        >
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="flex flex-col gap-1">
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded text-xs font-bold badge-${
+                                  stockStatus.status === "critical"
+                                    ? "red"
+                                    : stockStatus.status === "warning"
+                                      ? "gold"
+                                      : "green"
+                                }`}
+                              >
+                                {stockStatus.label}
+                              </span>
+                              <span
+                                className={`inline-block px-2 py-0.5 rounded text-xs font-bold badge-${
+                                  expiryStatus.status === "expired" ||
+                                  expiryStatus.status === "expiring"
+                                    ? "red"
+                                    : "blue"
+                                }`}
+                              >
+                                {expiryStatus.label}
+                              </span>
+                            </div>
+                          </td>
+                          <td className="px-3 py-3 text-navy font-semibold whitespace-nowrap">
+                            {product.sku}
+                          </td>
+                          <td className="px-3 py-3 text-navy hidden sm:table-cell max-w-xs truncate">
+                            {product.description}
+                          </td>
+                          <td className="px-3 py-3 text-navy font-semibold whitespace-nowrap">
+                            ₱{product.unitPrice.toLocaleString("en-PH", {
+                              minimumFractionDigits: 2,
+                            })}
+                          </td>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <span
+                              className={`px-2 py-1 rounded text-xs font-bold text-white ${
+                                stockStatus.status === "critical"
+                                  ? "bg-red"
+                                  : stockStatus.status === "warning"
+                                    ? "bg-gold"
+                                    : "bg-green"
+                              }`}
+                            >
+                              {product.quantity}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-navy hidden lg:table-cell whitespace-nowrap">
+                            {product.expiryDate}
+                          </td>
+                          <td className="px-3 py-3 whitespace-nowrap">
+                            <div className="flex gap-1">
+                              <button
+                                onClick={() => handleViewQR(product)}
+                                className="px-2 py-1 bg-white border border-border text-navy rounded text-xs font-semibold hover:bg-off-white"
+                                title="View QR Code"
+                              >
+                                ⬜
+                              </button>
+                              <button
+                                onClick={() => handleEdit(product)}
+                                className="px-2 py-1 bg-gold text-white rounded text-xs font-semibold hover:opacity-90"
+                                title="Edit"
+                              >
+                                ✏
+                              </button>
+                              <button
+                                onClick={() => removeProductFromBatch(product.id)}
+                                className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                                title="Remove from batch"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
+
+            {/* Pagination */}
+            <div className="flex items-center justify-between px-6 py-4 border-t border-border">
+              <div className="text-xs text-muted">
+                Page {currentPage} of {totalPages} · {filteredBatchProducts.length} items
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
+                  disabled={currentPage === 1}
+                  className="px-3 py-1 border border-border rounded text-xs font-semibold disabled:opacity-50"
+                >
+                  ← Previous
+                </button>
+                {Array.from({ length: totalPages }, (_, i) => i + 1)
+                  .slice(Math.max(0, currentPage - 2), currentPage + 1)
+                  .map((page) => (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={`px-3 py-1 rounded text-xs font-semibold ${
+                        page === currentPage
+                          ? "bg-accent-2 text-white"
+                          : "border border-border hover:bg-off-white"
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  ))}
+                <button
+                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-1 border border-border rounded text-xs font-semibold disabled:opacity-50"
+                >
+                  Next →
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* Pagination - REQ-INV-010 */}
-        <div className="flex items-center justify-between px-6 py-4 border-t border-border">
-          <div className="text-xs text-muted">
-            Page {currentPage} of {totalPages} · {filteredProducts.length} items
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-              disabled={currentPage === 1}
-              className="px-3 py-1 border border-border rounded text-xs font-semibold disabled:opacity-50"
-            >
-              ← Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1)
-              .slice(Math.max(0, currentPage - 2), currentPage + 1)
-              .map((page) => (
-                <button
-                  key={page}
-                  onClick={() => setCurrentPage(page)}
-                  className={`px-3 py-1 rounded text-xs font-semibold ${
-                    page === currentPage
-                      ? "bg-accent-2 text-white"
-                      : "border border-border hover:bg-off-white"
-                  }`}
-                >
-                  {page}
-                </button>
-              ))}
-            <button
-              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-              disabled={currentPage === totalPages}
-              className="px-3 py-1 border border-border rounded text-xs font-semibold disabled:opacity-50"
-            >
-              Next →
-            </button>
+        {/* Right Column: All Products Panel (35%) */}
+        <div className="bg-white rounded-2xl border border-border p-6 h-fit">
+          <h2 className="font-rajdhani text-lg font-bold text-navy mb-4 letter-spacing-tight">
+            All Products
+          </h2>
+          <div className="space-y-2 max-h-96 overflow-y-auto">
+            {allProducts.length === 0 ? (
+              <div className="text-xs text-muted text-center py-4">
+                No products available
+              </div>
+            ) : (
+              allProducts.map((product) => {
+                const isInBatch = currentBatch?.productIds.includes(product.id);
+                return (
+                  <div
+                    key={product.id}
+                    className="flex items-center justify-between p-3 bg-off-white rounded-lg hover:bg-navy/5 transition-colors gap-2"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-navy truncate">
+                        {product.sku}
+                      </div>
+                      <div className="text-xs text-muted truncate">
+                        {product.description}
+                      </div>
+                      <div className="text-xs font-semibold text-accent-2 mt-1">
+                        ₱{product.unitPrice.toLocaleString("en-PH", {
+                          minimumFractionDigits: 2,
+                        })}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() =>
+                        isInBatch
+                          ? removeProductFromBatch(product.id)
+                          : addProductToBatch(product.id)
+                      }
+                      className={`px-2 py-1 rounded text-xs font-semibold whitespace-nowrap ${
+                        isInBatch
+                          ? "bg-red text-white hover:opacity-90"
+                          : "bg-green text-white hover:opacity-90"
+                      }`}
+                      title={isInBatch ? "Remove from batch" : "Add to batch"}
+                    >
+                      {isInBatch ? "✕" : "＋"}
+                    </button>
+                  </div>
+                );
+              })
+            )}
           </div>
         </div>
       </div>
@@ -525,12 +744,26 @@ export function Inventory() {
         />
       )}
 
-      {/* QR Code Modal - REQ-INV-015 */}
-      {qrProduct && (
-        <QRModal
-          product={qrProduct}
-          onClose={() => setQrProduct(null)}
+      {/* Batch Selector Modal */}
+      {isBatchModalOpen && (
+        <BatchModal
+          batches={batches}
+          selectedBatchId={selectedBatchId}
+          onSelectBatch={(batchId) => {
+            setSelectedBatchId(batchId);
+            setIsBatchModalOpen(false);
+          }}
+          onDeleteBatch={deleteBatch}
+          onCreateBatch={createNewBatch}
+          onClose={() => setIsBatchModalOpen(false)}
+          newBatchName={newBatchName}
+          setNewBatchName={setNewBatchName}
         />
+      )}
+
+      {/* QR Code Modal */}
+      {qrProduct && (
+        <QRModal product={qrProduct} onClose={() => setQrProduct(null)} />
       )}
     </div>
   );
@@ -552,9 +785,7 @@ function StatsBox({
   return (
     <div className={`bg-white border border-border rounded-lg p-3 text-center`}>
       <div className="text-2xl mb-1">{icon}</div>
-      <div className={`font-rajdhani text-xl font-bold ${colorClass}`}>
-        {value}
-      </div>
+      <div className={`font-rajdhani text-xl font-bold ${colorClass}`}>{value}</div>
       <div className="text-xs text-muted mt-1">{label}</div>
     </div>
   );
@@ -757,7 +988,117 @@ function Modal({
   );
 }
 
-// QR Code Modal Component - REQ-INV-015 with Print Functionality
+// Batch Selector Modal Component
+function BatchModal({
+  batches,
+  selectedBatchId,
+  onSelectBatch,
+  onDeleteBatch,
+  onCreateBatch,
+  onClose,
+  newBatchName,
+  setNewBatchName,
+}: {
+  batches: Batch[];
+  selectedBatchId: string;
+  onSelectBatch: (batchId: string) => void;
+  onDeleteBatch: (batchId: string) => void;
+  onCreateBatch: () => void;
+  onClose: () => void;
+  newBatchName: string;
+  setNewBatchName: (name: string) => void;
+}) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl border border-border max-w-md w-full p-6">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="font-rajdhani text-lg font-bold text-navy">
+            Manage Batches
+          </h2>
+          <button
+            onClick={onClose}
+            className="text-navy hover:opacity-70 text-2xl"
+          >
+            ×
+          </button>
+        </div>
+
+        {/* Existing Batches */}
+        <div className="space-y-2 mb-6 max-h-48 overflow-y-auto">
+          <h3 className="text-xs font-semibold text-muted uppercase">
+            Available Batches
+          </h3>
+          {batches.map((batch) => (
+            <div
+              key={batch.id}
+              className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                selectedBatchId === batch.id
+                  ? "border-accent-2 bg-accent-2/10"
+                  : "border-border hover:bg-off-white"
+              }`}
+              onClick={() => onSelectBatch(batch.id)}
+            >
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-navy">{batch.name}</div>
+                <div className="text-xs text-muted">
+                  {batch.productIds.length} products
+                </div>
+              </div>
+              {batch.id !== "batch-all" && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteBatch(batch.id);
+                  }}
+                  className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                  title="Delete batch"
+                >
+                  🗑
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+
+        {/* Create New Batch */}
+        <div className="space-y-3 pt-6 border-t border-border">
+          <h3 className="text-xs font-semibold text-muted uppercase">
+            Create New Batch
+          </h3>
+          <input
+            type="text"
+            value={newBatchName}
+            onChange={(e) => setNewBatchName(e.target.value)}
+            placeholder="Enter batch name"
+            className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+            onKeyPress={(e) => {
+              if (e.key === "Enter") {
+                onCreateBatch();
+              }
+            }}
+          />
+          <button
+            onClick={onCreateBatch}
+            className="w-full px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
+          >
+            ➕ Create Batch
+          </button>
+        </div>
+
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 border border-border rounded-lg font-semibold text-sm hover:bg-off-white"
+          >
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// QR Code Modal Component
 function QRModal({
   product,
   onClose,
