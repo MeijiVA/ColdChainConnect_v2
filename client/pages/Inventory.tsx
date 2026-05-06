@@ -750,7 +750,7 @@ export function Inventory() {
               </div>
             ) : (
               allProducts.map((product) => {
-                const isInBatch = currentBatch?.productIds.includes(product.id);
+                const isInBatch = currentBatch?.items?.some((item) => item.productId === product.id);
                 return (
                   <div
                     key={product.id}
