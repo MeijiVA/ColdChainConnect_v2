@@ -19,7 +19,7 @@ export function Sidebar({ activePanel, onPanelChange, onLogout }: SidebarProps) 
   const additionalItems = [
     { id: "payroll", label: "Payroll" },
     { id: "expenses", label: "Expenses & Finance" },
-    { id: "trucks", label: "Trucks in Transit" },
+    { id: "trucks", label: "Dispatch" },
     { id: "reports", label: "Reports" },
   ];
 
