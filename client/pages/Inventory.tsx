@@ -585,9 +585,6 @@ export function Inventory() {
                       Description
                     </th>
                     <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                      Price
-                    </th>
-                    <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                       Qty
                     </th>
                     <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden lg:table-cell">
@@ -601,7 +598,7 @@ export function Inventory() {
                 <tbody>
                   {paginatedBatchProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="px-3 py-6 text-center text-muted">
+                      <td colSpan={6} className="px-3 py-6 text-center text-muted">
                         No products in this batch
                       </td>
                     </tr>
@@ -644,11 +641,6 @@ export function Inventory() {
                           </td>
                           <td className="px-3 py-3 text-navy hidden sm:table-cell max-w-xs truncate">
                             {product.description}
-                          </td>
-                          <td className="px-3 py-3 text-navy font-semibold whitespace-nowrap">
-                            ₱{product.unitPrice.toLocaleString("en-PH", {
-                              minimumFractionDigits: 2,
-                            })}
                           </td>
                           <td className="px-3 py-3 whitespace-nowrap">
                             <span
@@ -843,9 +835,18 @@ export function Inventory() {
           }}
           onDeleteBatch={deleteBatch}
           onCreateBatch={createNewBatch}
+          onEditBatch={(batchId, updatedItems) => {
+            setBatches(
+              batches.map((b) =>
+                b.id === batchId ? { ...b, items: updatedItems } : b
+              )
+            );
+            setIsBatchModalOpen(false);
+          }}
           onClose={() => setIsBatchModalOpen(false)}
           newBatchName={newBatchName}
           setNewBatchName={setNewBatchName}
+          products={products}
         />
       )}
 
@@ -1052,20 +1053,26 @@ function BatchModal({
   onSelectBatch,
   onDeleteBatch,
   onCreateBatch,
+  onEditBatch,
   onClose,
   newBatchName,
   setNewBatchName,
+  products,
 }: {
   batches: Batch[];
   selectedBatchId: string;
   onSelectBatch: (batchId: string) => void;
   onDeleteBatch: (batchId: string) => void;
   onCreateBatch: (items: BatchItem[]) => void;
+  onEditBatch: (batchId: string, items: BatchItem[]) => void;
   onClose: () => void;
   newBatchName: string;
   setNewBatchName: (name: string) => void;
+  products: InventoryProduct[];
 }) {
   const [isCreatingBatch, setIsCreatingBatch] = useState(false);
+  const [isEditingBatch, setIsEditingBatch] = useState(false);
+  const [editingBatchId, setEditingBatchId] = useState<string>("");
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
 
   return (
@@ -1073,11 +1080,12 @@ function BatchModal({
       <div className="bg-white rounded-2xl border border-border max-w-2xl w-full max-h-screen overflow-y-auto">
         <div className="sticky top-0 bg-navy-mid px-6 py-4 flex items-center justify-between border-b border-border">
           <h2 className="font-rajdhani text-lg font-bold text-white">
-            {isCreatingBatch ? "Create New Batch" : "Manage Batches"}
+            {isCreatingBatch ? "Create New Batch" : isEditingBatch ? "Edit Batch" : "Manage Batches"}
           </h2>
           <button
             onClick={() => {
               setIsCreatingBatch(false);
+              setIsEditingBatch(false);
               setBatchItems([]);
               onClose();
             }}
@@ -1088,7 +1096,7 @@ function BatchModal({
         </div>
 
         <div className="p-6">
-          {!isCreatingBatch ? (
+          {!isCreatingBatch && !isEditingBatch ? (
             <>
               {/* Existing Batches */}
               <div className="space-y-2 mb-6">
@@ -1111,18 +1119,34 @@ function BatchModal({
                         {batch.items.length} product{batch.items.length !== 1 ? "s" : ""}
                       </div>
                     </div>
-                    {batch.id !== "batch-all" && (
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onDeleteBatch(batch.id);
-                        }}
-                        className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
-                        title="Delete batch"
-                      >
-                        🗑
-                      </button>
-                    )}
+                    <div className="flex gap-1">
+                      {batch.id !== "batch-all" && (
+                        <>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEditingBatchId(batch.id);
+                              setIsEditingBatch(true);
+                              setBatchItems(batch.items);
+                            }}
+                            className="px-2 py-1 bg-gold text-white rounded text-xs font-semibold hover:opacity-90"
+                            title="Edit batch"
+                          >
+                            ✏
+                          </button>
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              onDeleteBatch(batch.id);
+                            }}
+                            className="px-2 py-1 bg-red text-white rounded text-xs font-semibold hover:opacity-90"
+                            title="Delete batch"
+                          >
+                            🗑
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -1147,13 +1171,20 @@ function BatchModal({
               setNewBatchName={setNewBatchName}
               batchItems={batchItems}
               setBatchItems={setBatchItems}
+              isEditing={isEditingBatch}
               onCreateBatch={() => {
-                onCreateBatch(batchItems);
-                setIsCreatingBatch(false);
+                if (isEditingBatch) {
+                  onEditBatch(editingBatchId, batchItems);
+                  setIsEditingBatch(false);
+                } else {
+                  onCreateBatch(batchItems);
+                  setIsCreatingBatch(false);
+                }
                 setBatchItems([]);
               }}
               onCancel={() => {
                 setIsCreatingBatch(false);
+                setIsEditingBatch(false);
                 setBatchItems([]);
               }}
             />
