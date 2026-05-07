@@ -620,7 +620,7 @@ export function Sales() {
               setEditingTransaction(null);
               setIsAddModalOpen(true);
             }}
-            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
+            className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white"
           >
             ＋ Create Sales
           </button>
