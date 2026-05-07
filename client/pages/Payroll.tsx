@@ -38,6 +38,8 @@ interface DisbursementRecord {
   completedDate?: string;
   referenceNumber?: string;
   notes?: string;
+  saleId?: string;
+  saleReference?: string;
 }
 
 export function Payroll() {
@@ -50,48 +52,88 @@ export function Payroll() {
     "all"
   );
 
-  const [agents, setAgents] = useState<Agent[]>([
-    {
-      id: "AGT-001",
-      name: "Juan dela Cruz",
-      employeeId: "EMP-101",
-      commissionRate: 5,
-      totalSales: 50000,
-      verifiedSales: 48000,
-      commissionEarned: 2400,
-      status: "pending",
-    },
-    {
-      id: "AGT-002",
-      name: "Maria Santos",
-      employeeId: "EMP-102",
-      commissionRate: 5,
-      totalSales: 65000,
-      verifiedSales: 62000,
-      commissionEarned: 3100,
-      status: "approved",
-    },
-    {
-      id: "AGT-003",
-      name: "Carlos Reyes",
-      employeeId: "EMP-103",
-      commissionRate: 5,
-      totalSales: 45000,
-      verifiedSales: 42000,
-      commissionEarned: 2100,
-      status: "disbursed",
-    },
-    {
-      id: "AGT-004",
-      name: "Rosa Gonzales",
-      employeeId: "EMP-104",
-      commissionRate: 5,
-      totalSales: 58000,
-      verifiedSales: 55000,
-      commissionEarned: 2750,
-      status: "pending",
-    },
+  // Sample sales data (would come from Sales page in real app)
+  const [sales] = useState([
+    { id: "1", salesId: "SLS-001", agentId: "AGT-001", agentName: "Juan dela Cruz", total: 3748.56, status: "paid" },
+    { id: "2", salesId: "SLS-002", agentId: "AGT-002", agentName: "Maria Santos", total: 1249.52, status: "unpaid" },
+    { id: "3", salesId: "SLS-003", agentId: "AGT-003", agentName: "Carlos Reyes", total: 530.10, status: "paid" },
+    { id: "4", salesId: "SLS-004", agentId: "AGT-004", agentName: "Rosa Gonzales", total: 1561.90, status: "paid" },
+    { id: "5", salesId: "SLS-005", agentId: "AGT-001", agentName: "Juan dela Cruz", total: 3417.11, status: "paid" },
+    { id: "6", salesId: "SLS-006", agentId: "AGT-002", agentName: "Maria Santos", total: 1249.52, status: "paid" },
+    { id: "7", salesId: "SLS-007", agentId: "AGT-001", agentName: "Juan dela Cruz", total: 3112.39, status: "paid" },
+    { id: "8", salesId: "SLS-008", agentId: "AGT-003", agentName: "Carlos Reyes", total: 35.34, status: "paid" },
+    { id: "9", salesId: "SLS-009", agentId: "AGT-004", agentName: "Rosa Gonzales", total: 153.33, status: "paid" },
   ]);
+
+  // Calculate agent commissions from sales
+  const calculateAgentStats = () => {
+    const commissionRate = 0.05; // 5%
+    const agentMap = new Map<
+      string,
+      { id: string; name: string; totalSales: number; paidSales: number; count: number }
+    >();
+
+    sales.forEach((sale) => {
+      const existing = agentMap.get(sale.agentId) || {
+        id: sale.agentId,
+        name: sale.agentName,
+        totalSales: 0,
+        paidSales: 0,
+        count: 0,
+      };
+      existing.totalSales += sale.total;
+      if (sale.status === "paid") {
+        existing.paidSales += sale.total;
+      }
+      existing.count += 1;
+      agentMap.set(sale.agentId, existing);
+    });
+
+    return [
+      {
+        id: "AGT-001",
+        name: "Juan dela Cruz",
+        employeeId: "EMP-101",
+        commissionRate: 5,
+        totalSales: agentMap.get("AGT-001")?.totalSales || 0,
+        verifiedSales: agentMap.get("AGT-001")?.paidSales || 0,
+        commissionEarned: ((agentMap.get("AGT-001")?.paidSales || 0) * commissionRate),
+        status: "pending" as const,
+      },
+      {
+        id: "AGT-002",
+        name: "Maria Santos",
+        employeeId: "EMP-102",
+        commissionRate: 5,
+        totalSales: agentMap.get("AGT-002")?.totalSales || 0,
+        verifiedSales: agentMap.get("AGT-002")?.paidSales || 0,
+        commissionEarned: ((agentMap.get("AGT-002")?.paidSales || 0) * commissionRate),
+        status: "approved" as const,
+      },
+      {
+        id: "AGT-003",
+        name: "Carlos Reyes",
+        employeeId: "EMP-103",
+        commissionRate: 5,
+        totalSales: agentMap.get("AGT-003")?.totalSales || 0,
+        verifiedSales: agentMap.get("AGT-003")?.paidSales || 0,
+        commissionEarned: ((agentMap.get("AGT-003")?.paidSales || 0) * commissionRate),
+        status: "disbursed" as const,
+      },
+      {
+        id: "AGT-004",
+        name: "Rosa Gonzales",
+        employeeId: "EMP-104",
+        commissionRate: 5,
+        totalSales: agentMap.get("AGT-004")?.totalSales || 0,
+        verifiedSales: agentMap.get("AGT-004")?.paidSales || 0,
+        commissionEarned: ((agentMap.get("AGT-004")?.paidSales || 0) * commissionRate),
+        status: "pending" as const,
+      },
+    ];
+  };
+
+  const [agents, setAgents] = useState<Agent[]>(calculateAgentStats());
 
   const [employees, setEmployees] = useState<Employee[]>([
     {
@@ -135,45 +177,30 @@ export function Payroll() {
     },
   ]);
 
-  const [disbursements, setDisbursements] = useState<DisbursementRecord[]>([
-    {
-      id: "DIS-001",
-      type: "commission",
-      recipientId: "AGT-003",
-      recipientName: "Carlos Reyes",
-      recipientType: "agent",
-      amount: 2100,
-      paymentMethod: "bank_transfer",
-      status: "completed",
-      createdDate: "2025-12-01",
-      completedDate: "2025-12-02",
-      referenceNumber: "BT-20251202-001",
-    },
-    {
-      id: "DIS-002",
-      type: "payroll",
-      recipientId: "EMP-003",
-      recipientName: "Robert Cruz",
-      recipientType: "employee",
-      amount: 19350,
-      paymentMethod: "gcash",
-      status: "completed",
-      createdDate: "2025-12-01",
-      completedDate: "2025-12-02",
-      referenceNumber: "GC-20251202-001",
-    },
-    {
-      id: "DIS-003",
-      type: "commission",
-      recipientId: "AGT-002",
-      recipientName: "Maria Santos",
-      recipientType: "agent",
-      amount: 3100,
-      paymentMethod: "paymaya",
-      status: "processing",
-      createdDate: "2025-12-05",
-    },
-  ]);
+  // Generate commission disbursements from sales
+  const generateCommissionDisbursements = () => {
+    const commissionRate = 0.05; // 5%
+    return sales.map((sale) => {
+      const commission = sale.total * commissionRate;
+      return {
+        id: `COMM-${sale.id}`,
+        type: "commission" as const,
+        recipientId: sale.agentId,
+        recipientName: sale.agentName,
+        recipientType: "agent" as const,
+        amount: commission,
+        paymentMethod: "bank_transfer" as const,
+        status: "pending" as const,
+        createdDate: "2025-12-05",
+        saleId: sale.id,
+        saleReference: sale.salesId,
+      };
+    });
+  };
+
+  const [disbursements, setDisbursements] = useState<DisbursementRecord[]>(
+    generateCommissionDisbursements()
+  );
 
   const itemsPerPage = 10;
 
@@ -705,6 +732,9 @@ function DisbursementsSection({
                   Recipient
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Sale Reference
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                   Amount
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
@@ -746,6 +776,13 @@ function DisbursementsSection({
                       <div className="font-semibold">{disbursement.recipientName}</div>
                       <div className="text-xs text-muted">{disbursement.recipientType}</div>
                     </div>
+                  </td>
+                  <td className="px-3 py-3 text-navy font-semibold">
+                    {disbursement.saleReference && (
+                      <span className="px-2 py-1 rounded text-xs font-semibold bg-off-white text-navy">
+                        {disbursement.saleReference}
+                      </span>
+                    )}
                   </td>
                   <td className="px-3 py-3 text-navy font-semibold">
                     ₱{disbursement.amount.toLocaleString("en-PH", {

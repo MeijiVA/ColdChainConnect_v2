@@ -20,6 +20,8 @@ interface SalesTransaction {
   salesId: string;
   customerId: string;
   customerName: string;
+  agentId: string;
+  agentName: string;
   date: string;
   items: SalesLineItem[];
   quantity: number;
@@ -169,6 +171,8 @@ export function Sales() {
       salesId: "SLS-001",
       customerId: "CUST-003",
       customerName: "KM5 Convenience Store",
+      agentId: "AGT-001",
+      agentName: "Juan dela Cruz",
       date: "2025-12-01",
       items: [
         {
@@ -190,6 +194,8 @@ export function Sales() {
       salesId: "SLS-002",
       customerId: "CUST-0010",
       customerName: "Ate Rosa Sari-Sari",
+      agentId: "AGT-002",
+      agentName: "Maria Santos",
       date: "2025-12-01",
       items: [
         {
@@ -210,6 +216,8 @@ export function Sales() {
       salesId: "SLS-003",
       customerId: "CUST-005",
       customerName: "Aling Nena Store",
+      agentId: "AGT-003",
+      agentName: "Carlos Reyes",
       date: "2025-12-01",
       items: [
         {
@@ -231,6 +239,8 @@ export function Sales() {
       salesId: "SLS-004",
       customerId: "CUST-004",
       customerName: "Mang Ben Palengke",
+      agentId: "AGT-004",
+      agentName: "Rosa Gonzales",
       date: "2025-12-01",
       items: [
         {
@@ -252,6 +262,8 @@ export function Sales() {
       salesId: "SLS-005",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      agentId: "AGT-001",
+      agentName: "Juan dela Cruz",
       date: "2025-12-05",
       items: [
         {
@@ -273,6 +285,8 @@ export function Sales() {
       salesId: "SLS-006",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      agentId: "AGT-002",
+      agentName: "Maria Santos",
       date: "2025-12-05",
       items: [
         {
@@ -294,6 +308,8 @@ export function Sales() {
       salesId: "SLS-007",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      agentId: "AGT-001",
+      agentName: "Juan dela Cruz",
       date: "2025-12-05",
       items: [
         {
@@ -315,6 +331,8 @@ export function Sales() {
       salesId: "SLS-008",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      agentId: "AGT-003",
+      agentName: "Carlos Reyes",
       date: "2025-12-05",
       items: [
         {
@@ -336,6 +354,8 @@ export function Sales() {
       salesId: "SLS-009",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      agentId: "AGT-004",
+      agentName: "Rosa Gonzales",
       date: "2025-12-05",
       items: [
         {
@@ -643,31 +663,40 @@ export function Sales() {
             <thead>
               <tr>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  <input type="checkbox" className="rounded" />
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Sales ID
+                  Date
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                   Customer Name
                 </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden sm:table-cell">
-                  Sales Date
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Sales Region
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Product ID
+                  Sales Agent
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Quantity
+                  SKU No.
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Unit Price
+                  Product Name
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Total
+                  Price per Unit
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Status
+                  Units Sold
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Total Sale Value
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Payment Method
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Invoice No.
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Order Status
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                   Action
@@ -680,23 +709,36 @@ export function Sales() {
                   key={transaction.id}
                   className="border-b border-border hover:bg-off-white/50 transition-colors"
                 >
-                  <td className="px-3 py-3 whitespace-nowrap">
-                    <input type="checkbox" className="rounded" />
-                  </td>
-                  <td className="px-3 py-3 text-navy font-semibold">{transaction.salesId}</td>
-                  <td className="px-3 py-3 text-navy">{transaction.customerName}</td>
-                  <td className="px-3 py-3 text-navy hidden sm:table-cell">
+                  <td className="px-3 py-3 text-navy text-xs">
                     {new Date(transaction.date).toLocaleDateString()}
                   </td>
+                  <td className="px-3 py-3 text-navy">{transaction.customerName}</td>
+                  <td className="px-3 py-3 text-navy text-sm">
+                    <span className="px-2 py-1 rounded text-xs font-semibold bg-blue/10 text-blue">
+                      Region 3
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-navy">{transaction.agentName}</td>
                   <td className="px-3 py-3 text-navy font-semibold">
                     {transaction.items[0]?.sku}
                   </td>
-                  <td className="px-3 py-3 text-navy">{transaction.quantity}</td>
+                  <td className="px-3 py-3 text-navy">
+                    {transaction.items[0]?.description}
+                  </td>
                   <td className="px-3 py-3 text-navy">
                     ₱{transaction.unitPrice.toFixed(2)}
                   </td>
+                  <td className="px-3 py-3 text-navy text-center">{transaction.quantity}</td>
                   <td className="px-3 py-3 text-navy font-semibold">
                     ₱{transaction.total.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-3 text-navy text-xs">
+                    <span className="px-2 py-1 rounded text-xs font-semibold bg-navy/10 text-navy">
+                      {transaction.paymentMethod || "Cash"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-navy font-semibold">
+                    {transaction.salesId}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
                     <span
@@ -884,12 +926,21 @@ function SalesModal({
   nextSalesId: string;
   inventory: InventoryProduct[];
 }) {
+  const agents = [
+    { id: "AGT-001", name: "Juan dela Cruz" },
+    { id: "AGT-002", name: "Maria Santos" },
+    { id: "AGT-003", name: "Carlos Reyes" },
+    { id: "AGT-004", name: "Rosa Gonzales" },
+  ];
+
   const [formData, setFormData] = useState<SalesTransaction>(
     transaction || {
       id: Date.now().toString(),
       salesId: nextSalesId,
       customerId: "",
       customerName: "",
+      agentId: "",
+      agentName: "",
       date: new Date().toISOString().split("T")[0],
       items: [
         {
@@ -954,6 +1005,11 @@ function SalesModal({
       return;
     }
 
+    if (!formData.agentId || !formData.agentName) {
+      alert("Please select an agent");
+      return;
+    }
+
     if (items.some((item) => !item.sku || !item.description || item.quantity <= 0)) {
       alert("Please fill in all item details");
       return;
@@ -1004,6 +1060,30 @@ function SalesModal({
             </div>
             <div>
               <label className="block text-xs font-semibold text-navy mb-1">
+                Agent *
+              </label>
+              <select
+                value={formData.agentId}
+                onChange={(e) => {
+                  const agent = agents.find((a) => a.id === e.target.value);
+                  setFormData({
+                    ...formData,
+                    agentId: e.target.value,
+                    agentName: agent?.name || "",
+                  });
+                }}
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+              >
+                <option value="">Select agent...</option>
+                {agents.map((agent) => (
+                  <option key={agent.id} value={agent.id}>
+                    {agent.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-navy mb-1">
                 Customer ID *
               </label>
               <input
@@ -1016,7 +1096,7 @@ function SalesModal({
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
               />
             </div>
-            <div className="md:col-span-2">
+            <div>
               <label className="block text-xs font-semibold text-navy mb-1">
                 Customer Name *
               </label>
