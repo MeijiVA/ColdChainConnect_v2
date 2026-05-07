@@ -364,7 +364,7 @@ export function TrucksInTransit() {
             onClick={() => setShowAddTruckModal(true)}
             className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity"
           >
-            ＋ Add Truck
+            ＋ Dispatch Items
           </button>
         </div>
       </div>
