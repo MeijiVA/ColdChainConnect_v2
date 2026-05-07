@@ -546,7 +546,7 @@ export function FinanceLedger() {
   const pendingOperational = operationalCosts.filter((c) => c.status === "pending").reduce((sum, c) => sum + c.amount, 0);
 
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-visible">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -857,7 +857,7 @@ export function FinanceLedger() {
             )}
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">
@@ -1033,7 +1033,7 @@ export function FinanceLedger() {
             )}
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">
@@ -1252,7 +1252,7 @@ export function FinanceLedger() {
             )}
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">
@@ -1342,7 +1342,7 @@ export function FinanceLedger() {
             </div>
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">
@@ -1427,7 +1427,7 @@ export function FinanceLedger() {
             </div>
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">

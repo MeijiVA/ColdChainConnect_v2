@@ -36,7 +36,7 @@ export function BottomNavBar({
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-navy border-t border-white/10 z-30 md:hidden">
       {/* Scrollable Navigation Items - Swipeable on mobile */}
-      <div className="flex overflow-x-auto overflow-y-hidden scrollbar-hide gap-1 scroll-smooth touch-pan-x px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
+      <div className="flex overflow-x-auto overflow-y-hidden scrollbar-visible gap-1 scroll-smooth touch-pan-x px-1" style={{ WebkitOverflowScrolling: 'touch' }}>
         {navItems.map((item) => {
           const IconComponent = item.icon;
           return (
