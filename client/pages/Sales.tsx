@@ -20,6 +20,7 @@ interface SalesTransaction {
   salesId: string;
   customerId: string;
   customerName: string;
+  region: string;
   agentId: string;
   agentName: string;
   date: string;
@@ -158,6 +159,16 @@ export function Sales() {
     },
   ]);
 
+  // Customer data with regions
+  const customers = [
+    { id: "CUST-001", name: "Aling Maria's Store", region: "Region 1" },
+    { id: "CUST-002", name: "Sari-Sari Store ng Ading", region: "Region 2" },
+    { id: "CUST-003", name: "KM5 Convenience Store", region: "Region 3" },
+    { id: "CUST-004", name: "Mang Ben Palengke", region: "Region 1" },
+    { id: "CUST-005", name: "Aling Nena Store", region: "Region 2" },
+    { id: "CUST-0010", name: "Ate Rosa Sari-Sari", region: "Region 3" },
+  ];
+
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
   const [currentPage, setCurrentPage] = useState(1);
@@ -171,6 +182,7 @@ export function Sales() {
       salesId: "SLS-001",
       customerId: "CUST-003",
       customerName: "KM5 Convenience Store",
+      region: "Region 3",
       agentId: "AGT-001",
       agentName: "Juan dela Cruz",
       date: "2025-12-01",
@@ -194,6 +206,7 @@ export function Sales() {
       salesId: "SLS-002",
       customerId: "CUST-0010",
       customerName: "Ate Rosa Sari-Sari",
+      region: "Region 3",
       agentId: "AGT-002",
       agentName: "Maria Santos",
       date: "2025-12-01",
@@ -216,6 +229,7 @@ export function Sales() {
       salesId: "SLS-003",
       customerId: "CUST-005",
       customerName: "Aling Nena Store",
+      region: "Region 2",
       agentId: "AGT-003",
       agentName: "Carlos Reyes",
       date: "2025-12-01",
@@ -239,6 +253,7 @@ export function Sales() {
       salesId: "SLS-004",
       customerId: "CUST-004",
       customerName: "Mang Ben Palengke",
+      region: "Region 1",
       agentId: "AGT-004",
       agentName: "Rosa Gonzales",
       date: "2025-12-01",
@@ -262,6 +277,7 @@ export function Sales() {
       salesId: "SLS-005",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      region: "Region 1",
       agentId: "AGT-001",
       agentName: "Juan dela Cruz",
       date: "2025-12-05",
@@ -285,6 +301,7 @@ export function Sales() {
       salesId: "SLS-006",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      region: "Region 1",
       agentId: "AGT-002",
       agentName: "Maria Santos",
       date: "2025-12-05",
@@ -308,6 +325,7 @@ export function Sales() {
       salesId: "SLS-007",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      region: "Region 1",
       agentId: "AGT-001",
       agentName: "Juan dela Cruz",
       date: "2025-12-05",
@@ -331,6 +349,7 @@ export function Sales() {
       salesId: "SLS-008",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      region: "Region 1",
       agentId: "AGT-003",
       agentName: "Carlos Reyes",
       date: "2025-12-05",
@@ -354,6 +373,7 @@ export function Sales() {
       salesId: "SLS-009",
       customerId: "CUST-001",
       customerName: "Aling Maria's Store",
+      region: "Region 1",
       agentId: "AGT-004",
       agentName: "Rosa Gonzales",
       date: "2025-12-05",
@@ -620,7 +640,7 @@ export function Sales() {
               setEditingTransaction(null);
               setIsAddModalOpen(true);
             }}
-            className="px-4 py-2 bg-accent-2 text-white rounded-lg font-semibold text-sm hover:opacity-90"
+            className="px-4 py-2 bg-white border border-border text-navy rounded-lg font-semibold text-sm hover:bg-off-white"
           >
             ＋ Create Sales
           </button>
@@ -715,7 +735,7 @@ export function Sales() {
                   <td className="px-3 py-3 text-navy">{transaction.customerName}</td>
                   <td className="px-3 py-3 text-navy text-sm">
                     <span className="px-2 py-1 rounded text-xs font-semibold bg-blue/10 text-blue">
-                      Region 3
+                      {transaction.region}
                     </span>
                   </td>
                   <td className="px-3 py-3 text-navy">{transaction.agentName}</td>
@@ -826,6 +846,7 @@ export function Sales() {
           onSave={handleSaveTransaction}
           nextSalesId={getNextSalesId()}
           inventory={inventory}
+          customers={customers}
         />
       )}
     </div>
@@ -919,12 +940,14 @@ function SalesModal({
   onSave,
   nextSalesId,
   inventory,
+  customers,
 }: {
   transaction: SalesTransaction | null;
   onClose: () => void;
   onSave: (transaction: SalesTransaction) => void;
   nextSalesId: string;
   inventory: InventoryProduct[];
+  customers: { id: string; name: string; region: string }[];
 }) {
   const agents = [
     { id: "AGT-001", name: "Juan dela Cruz" },
@@ -939,6 +962,7 @@ function SalesModal({
       salesId: nextSalesId,
       customerId: "",
       customerName: "",
+      region: "",
       agentId: "",
       agentName: "",
       date: new Date().toISOString().split("T")[0],
@@ -1084,35 +1108,56 @@ function SalesModal({
             </div>
             <div>
               <label className="block text-xs font-semibold text-navy mb-1">
-                Customer ID *
+                Customer *
               </label>
-              <input
-                type="text"
+              <select
                 value={formData.customerId}
-                onChange={(e) =>
-                  setFormData({ ...formData, customerId: e.target.value })
-                }
-                placeholder="CUST-001"
+                onChange={(e) => {
+                  const customer = customers.find((c) => c.id === e.target.value);
+                  if (customer) {
+                    setFormData({
+                      ...formData,
+                      customerId: customer.id,
+                      customerName: customer.name,
+                      region: customer.region,
+                    });
+                  }
+                }}
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
-              />
+              >
+                <option value="">Select customer...</option>
+                {customers.map((customer) => (
+                  <option key={customer.id} value={customer.id}>
+                    {customer.id} - {customer.name}
+                  </option>
+                ))}
+              </select>
             </div>
             <div>
               <label className="block text-xs font-semibold text-navy mb-1">
-                Customer Name *
+                Customer Name
               </label>
               <input
                 type="text"
                 value={formData.customerName}
-                onChange={(e) =>
-                  setFormData({ ...formData, customerName: e.target.value })
-                }
-                placeholder="Store Name"
-                className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                disabled
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-off-white text-navy font-semibold"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-navy mb-1">
+                Region
+              </label>
+              <input
+                type="text"
+                value={formData.region}
+                disabled
+                className="w-full px-3 py-2 border border-border rounded-lg text-sm bg-off-white text-navy font-semibold"
+              />
+            </div>
             <div>
               <label className="block text-xs font-semibold text-navy mb-1">
                 Sales Date *
@@ -1126,6 +1171,9 @@ function SalesModal({
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
               />
             </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-navy mb-1">
                 Payment Method
