@@ -663,34 +663,40 @@ export function Sales() {
             <thead>
               <tr>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  <input type="checkbox" className="rounded" />
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Sales ID
-                </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Agent Name
+                  Date
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                   Customer Name
                 </th>
-                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden sm:table-cell">
-                  Sales Date
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Sales Region
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Product ID
+                  Sales Agent
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Quantity
+                  SKU No.
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Unit Price
+                  Product Name
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Total
+                  Price per Unit
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
-                  Status
+                  Units Sold
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Total Sale Value
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Payment Method
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Invoice No.
+                </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
+                  Order Status
                 </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                   Action
@@ -703,24 +709,36 @@ export function Sales() {
                   key={transaction.id}
                   className="border-b border-border hover:bg-off-white/50 transition-colors"
                 >
-                  <td className="px-3 py-3 whitespace-nowrap">
-                    <input type="checkbox" className="rounded" />
-                  </td>
-                  <td className="px-3 py-3 text-navy font-semibold">{transaction.salesId}</td>
-                  <td className="px-3 py-3 text-navy">{transaction.agentName}</td>
-                  <td className="px-3 py-3 text-navy">{transaction.customerName}</td>
-                  <td className="px-3 py-3 text-navy hidden sm:table-cell">
+                  <td className="px-3 py-3 text-navy text-xs">
                     {new Date(transaction.date).toLocaleDateString()}
                   </td>
+                  <td className="px-3 py-3 text-navy">{transaction.customerName}</td>
+                  <td className="px-3 py-3 text-navy text-sm">
+                    <span className="px-2 py-1 rounded text-xs font-semibold bg-blue/10 text-blue">
+                      Region 3
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-navy">{transaction.agentName}</td>
                   <td className="px-3 py-3 text-navy font-semibold">
                     {transaction.items[0]?.sku}
                   </td>
-                  <td className="px-3 py-3 text-navy">{transaction.quantity}</td>
+                  <td className="px-3 py-3 text-navy">
+                    {transaction.items[0]?.description}
+                  </td>
                   <td className="px-3 py-3 text-navy">
                     ₱{transaction.unitPrice.toFixed(2)}
                   </td>
+                  <td className="px-3 py-3 text-navy text-center">{transaction.quantity}</td>
                   <td className="px-3 py-3 text-navy font-semibold">
                     ₱{transaction.total.toFixed(2)}
+                  </td>
+                  <td className="px-3 py-3 text-navy text-xs">
+                    <span className="px-2 py-1 rounded text-xs font-semibold bg-navy/10 text-navy">
+                      {transaction.paymentMethod || "Cash"}
+                    </span>
+                  </td>
+                  <td className="px-3 py-3 text-navy font-semibold">
+                    {transaction.salesId}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
                     <span
