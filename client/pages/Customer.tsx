@@ -4,6 +4,7 @@ interface CustomerRecord {
   id: string;
   customerId: string;
   name: string;
+  region: string;
   phoneNumber: string;
   address: string;
   paymentTerms: string;
@@ -26,6 +27,7 @@ export function Customer() {
       id: "1",
       customerId: "CUST-001",
       name: "Aling Maria's Store",
+      region: "Region 1",
       phoneNumber: "09175551234",
       address: "123 Rizal Street, Maynila, Metro Manila",
       paymentTerms: "30 Days Credit",
@@ -39,6 +41,7 @@ export function Customer() {
       id: "2",
       customerId: "CUST-002",
       name: "Sari-Sari Store ng Ading",
+      region: "Region 2",
       phoneNumber: "09087654321",
       address: "456 Osmeña Avenue, Cebu City",
       paymentTerms: "Cash",
@@ -52,6 +55,7 @@ export function Customer() {
       id: "3",
       customerId: "CUST-003",
       name: "KM5 Convenience Store",
+      region: "Region 3",
       phoneNumber: "09209876543",
       address: "789 Quezon Blvd, Quezon City",
       paymentTerms: "Cash on Delivery",
@@ -65,6 +69,7 @@ export function Customer() {
       id: "4",
       customerId: "CUST-004",
       name: "Mang Ben Palengke",
+      region: "Region 1",
       phoneNumber: "09325558888",
       address: "321 Macapagal Avenue, Las Piñas",
       paymentTerms: "Cash",
@@ -78,6 +83,7 @@ export function Customer() {
       id: "5",
       customerId: "CUST-005",
       name: "Aling Nena Store",
+      region: "Region 2",
       phoneNumber: "09415559999",
       address: "654 EDSA, Mandaluyong",
       paymentTerms: "15 Days Credit",
@@ -91,6 +97,7 @@ export function Customer() {
       id: "6",
       customerId: "CUST-006",
       name: "Ate Rosa Sari-Sari",
+      region: "Region 3",
       phoneNumber: "09187773333",
       address: "987 Espanya Blvd, Sampaloc, Manila",
       paymentTerms: "30 Days Credit",
@@ -104,6 +111,7 @@ export function Customer() {
       id: "7",
       customerId: "CUST-007",
       name: "Jose's Mini Mart",
+      region: "Region 2",
       phoneNumber: "09332224444",
       address: "111 Magsaysay Road, Davao City",
       paymentTerms: "Cash",
@@ -116,6 +124,7 @@ export function Customer() {
       id: "8",
       customerId: "CUST-008",
       name: "Corner Store ng Kuya",
+      region: "Region 1",
       phoneNumber: "09447775555",
       address: "222 Pulaski Street, Iloilo City",
       paymentTerms: "7 Days Credit",
@@ -129,6 +138,7 @@ export function Customer() {
       id: "9",
       customerId: "CUST-009",
       name: "Nanay's Tiangge",
+      region: "Region 3",
       phoneNumber: "09558886666",
       address: "333 Paseo de Santa Rosa, Laguna",
       paymentTerms: "COD",
@@ -142,6 +152,7 @@ export function Customer() {
       id: "10",
       customerId: "CUST-0010",
       name: "Downtown Convenience",
+      region: "Region 3",
       phoneNumber: "09669997777",
       address: "444 Pasong Tamo, Makati",
       paymentTerms: "30 Days Credit",
@@ -332,6 +343,9 @@ export function Customer() {
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap">
                   Name
                 </th>
+                <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden md:table-cell">
+                  Region
+                </th>
                 <th className="bg-navy-mid text-muted font-barlow-cond text-xs font-bold letter-spacing-wider uppercase px-3 py-3 text-left border-b border-border whitespace-nowrap hidden sm:table-cell">
                   Phone
                 </th>
@@ -363,6 +377,11 @@ export function Customer() {
                   </td>
                   <td className="px-3 py-3 text-navy font-semibold">{customer.customerId}</td>
                   <td className="px-3 py-3 text-navy font-semibold">{customer.name}</td>
+                  <td className="px-3 py-3 text-navy hidden md:table-cell text-xs">
+                    <span className="px-2 py-1 rounded text-xs font-semibold bg-blue/10 text-blue">
+                      {customer.region}
+                    </span>
+                  </td>
                   <td className="px-3 py-3 text-navy hidden sm:table-cell">
                     {customer.phoneNumber}
                   </td>
@@ -473,6 +492,7 @@ function CustomerModal({
       id: Date.now().toString(),
       customerId: nextCustomerId,
       name: "",
+      region: "",
       phoneNumber: "",
       address: "",
       paymentTerms: "Cash",
@@ -484,7 +504,7 @@ function CustomerModal({
   );
 
   const handleSave = () => {
-    if (!formData.name || !formData.phoneNumber || !formData.address) {
+    if (!formData.name || !formData.region || !formData.phoneNumber || !formData.address) {
       alert("Please fill in all required fields");
       return;
     }
@@ -560,6 +580,24 @@ function CustomerModal({
                   placeholder="e.g., Aling Maria's Store"
                   className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
                 />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-navy mb-1">
+                  Region *
+                </label>
+                <select
+                  value={formData.region}
+                  onChange={(e) =>
+                    setFormData({ ...formData, region: e.target.value })
+                  }
+                  className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
+                >
+                  <option value="">Select region...</option>
+                  <option value="Region 1">Region 1</option>
+                  <option value="Region 2">Region 2</option>
+                  <option value="Region 3">Region 3</option>
+                </select>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

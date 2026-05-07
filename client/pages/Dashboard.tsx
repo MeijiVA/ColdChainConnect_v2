@@ -2,7 +2,7 @@ import { useState } from "react";
 
 export function Dashboard({ onPanelChange }: { onPanelChange?: (panel: string) => void }) {
   const [period, setPeriod] = useState<"daily" | "weekly" | "monthly" | "yearly">(
-    "monthly"
+    "daily"
   );
 
   // Sample data for demonstration

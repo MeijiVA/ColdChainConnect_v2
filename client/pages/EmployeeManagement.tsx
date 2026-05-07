@@ -7,7 +7,7 @@ interface Employee {
   middleName?: string;
   lastName: string;
   username: string;
-  position: "Administrator" | "Sales" | "Inventory" | "Assistant";
+  position: "Administrator" | "Assistant" | "Field Employee";
   status: "Active" | "Inactive";
   email: string;
   phone: string;
@@ -19,16 +19,14 @@ interface Employee {
 
 const positionPrefixes: Record<string, string> = {
   Administrator: "ADM",
-  Sales: "SLS",
-  Inventory: "INV",
   Assistant: "AST",
+  "Field Employee": "FLD",
 };
 
 const positionColors: Record<string, string> = {
   Administrator: "bg-blue-100 text-blue-700",
-  Sales: "bg-purple-100 text-purple-700",
-  Inventory: "bg-cyan-100 text-cyan-700",
   Assistant: "bg-pink-100 text-pink-700",
+  "Field Employee": "bg-green-100 text-green-700",
 };
 
 export function EmployeeManagement() {
@@ -63,11 +61,11 @@ export function EmployeeManagement() {
       sex: "Male",
     },
     {
-      id: "INV-0001",
+      id: "FLD-0001",
       firstName: "Azaryah",
       lastName: "Carino",
       username: "ryah",
-      position: "Inventory",
+      position: "Field Employee",
       status: "Active",
       email: "carino.ryah@acdp.com",
       phone: "09123456791",
@@ -77,12 +75,12 @@ export function EmployeeManagement() {
       sex: "Male",
     },
     {
-      id: "SLS-0001",
+      id: "FLD-0002",
       firstName: "Dane Andrea",
       middleName: "Dela Cruz",
       lastName: "Bautista",
       username: "Dane",
-      position: "Sales",
+      position: "Field Employee",
       status: "Active",
       email: "bautista.dane@acdp.com",
       phone: "09123456792",
@@ -92,11 +90,11 @@ export function EmployeeManagement() {
       sex: "Female",
     },
     {
-      id: "SLS-0002",
+      id: "FLD-0003",
       firstName: "Claret",
       lastName: "Santos",
       username: "claret",
-      position: "Sales",
+      position: "Field Employee",
       status: "Inactive",
       email: "santos.claret@acdp.com",
       phone: "09123456793",
@@ -106,11 +104,11 @@ export function EmployeeManagement() {
       sex: "Female",
     },
     {
-      id: "SLS-0003",
+      id: "FLD-0004",
       firstName: "Test",
       lastName: "Kahit",
       username: "Kahitano",
-      position: "Sales",
+      position: "Field Employee",
       status: "Active",
       email: "test.kahit@acdp.com",
       phone: "09123456794",
@@ -130,13 +128,13 @@ export function EmployeeManagement() {
     middleName: "",
     lastName: "",
     username: "",
-    position: "Assistant" as const,
+    position: "Assistant" as "Administrator" | "Assistant" | "Field Employee",
     email: "",
     phone: "",
     address: "",
     age: 0,
     dateOfBirth: "",
-    sex: "Male" as const,
+    sex: "Male" as "Male" | "Female",
   });
 
   const filteredEmployees = employees.filter(
@@ -598,14 +596,13 @@ export function EmployeeManagement() {
                 onChange={(e) =>
                   setNewEmployee({
                     ...newEmployee,
-                    position: e.target.value as "Administrator" | "Sales" | "Inventory" | "Assistant",
+                    position: e.target.value as "Administrator" | "Assistant" | "Field Employee",
                   })
                 }
                 className="w-full px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:border-accent-2"
               >
                 <option value="Assistant">Assistant</option>
-                <option value="Inventory">Inventory</option>
-                <option value="Sales">Sales</option>
+                <option value="Field Employee">Field Employee</option>
                 <option value="Administrator">Administrator</option>
               </select>
             </div>
