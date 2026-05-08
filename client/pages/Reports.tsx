@@ -284,6 +284,8 @@ export function Reports() {
       const printedBy = "Administrator"; // Could be dynamic based on current user
 
       let contentDetails = "";
+      let additionalContent = "";
+
       switch (docType) {
         case "Sales Receipt":
           contentDetails = "Contains sales transaction records, customer details, itemized products, prices, and payment method information.";
@@ -296,6 +298,46 @@ export function Reports() {
           break;
         case "Performance Report":
           contentDetails = "Contains operational metrics, performance indicators, trend analysis, and comparative data for decision-making.";
+          break;
+        case "Monthly Report":
+          contentDetails = "Contains consolidated monthly sales data, inventory status, financial summaries, and performance metrics.";
+          // Add sales data from mockSalesReports (monthly entry is index 2)
+          const monthlySales = mockSalesReports[2];
+          const monthlyInventory = mockInventoryReports.slice(0, 5); // Sample inventory items
+
+          additionalContent = `
+================================================================================
+MONTHLY SALES SUMMARY (${monthlySales.period})
+================================================================================
+
+Total Revenue: ₱${monthlySales.totalRevenue.toLocaleString()}
+Total Transactions: ${monthlySales.totalTransactions}
+Average Transaction Value: ₱${monthlySales.averageTransaction.toFixed(2)}
+Top Selling Product: ${monthlySales.topProduct}
+Top Product Revenue: ₱${monthlySales.topProductSales.toLocaleString()}
+
+================================================================================
+INVENTORY STATUS SNAPSHOT
+================================================================================
+
+${monthlyInventory.map((item, idx) => `
+${idx + 1}. ${item.productName} (${item.sku})
+   Current Stock: ${item.currentStock} units
+   Reorder Level: ${item.reorderLevel} units
+   Status: ${item.status.toUpperCase()}
+   Inventory Value: ₱${item.value.toLocaleString()}
+   Expiry Date: ${item.expiryDate}
+`).join('')}
+
+================================================================================
+MONTHLY PERFORMANCE SUMMARY
+================================================================================
+
+✓ Total Inventory Value: ₱${monthlyInventory.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
+✓ Products with Low Stock: ${monthlyInventory.filter(item => item.status === 'low-stock').length}
+✓ Products Expiring Soon: ${monthlyInventory.filter(item => item.status === 'expiring').length}
+✓ Critical Review Items: ${monthlyInventory.filter(item => item.currentStock <= item.reorderLevel).length}
+`;
           break;
         default:
           contentDetails = "Contains relevant document data and information.";
@@ -361,6 +403,8 @@ DOCUMENT OUTLINE
    - Document reference number
    - Approval status
    - Contact information
+
+${additionalContent}
 
 ================================================================================
 DOCUMENT FOOTER
@@ -992,6 +1036,17 @@ This is an official document and should be retained for record-keeping purposes.
               <div className="text-left w-full">
                 <div className="font-semibold text-navy">📊 Performance Report</div>
                 <div className="text-xs text-gray-600">Generate performance summary documents</div>
+              </div>
+            </Button>
+            <Button
+              onClick={() => handleGenerateDocument("Monthly Report")}
+              disabled={isExporting}
+              variant="outline"
+              className="h-auto py-4"
+            >
+              <div className="text-left w-full">
+                <div className="font-semibold text-navy">📅 Monthly Report</div>
+                <div className="text-xs text-gray-600">Generate monthly sales and inventory summary</div>
               </div>
             </Button>
           </div>
