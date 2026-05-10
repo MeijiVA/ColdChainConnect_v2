@@ -28,7 +28,7 @@ interface SalesTransaction {
   quantity: number;
   unitPrice: number;
   total: number;
-  status: "paid" | "unpaid";
+  status: "paid" | "unpaid" | "revoked";
   paymentMethod?: string;
   notes?: string;
 }
@@ -170,7 +170,7 @@ export function Sales() {
   ];
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid">("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | "paid" | "unpaid" | "revoked">("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState<SalesTransaction | null>(null);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -455,7 +455,7 @@ export function Sales() {
   };
 
   // Handle status change
-  const handleStatusChange = (id: string, newStatus: "paid" | "unpaid") => {
+  const handleStatusChange = (id: string, newStatus: "paid" | "unpaid" | "revoked") => {
     setTransactions(
       transactions.map((tx) =>
         tx.id === id ? { ...tx, status: newStatus } : tx
@@ -665,7 +665,7 @@ export function Sales() {
         <select
           value={filterStatus}
           onChange={(e) => {
-            setFilterStatus(e.target.value as "all" | "paid" | "unpaid");
+            setFilterStatus(e.target.value as "all" | "paid" | "unpaid" | "revoked");
             setCurrentPage(1);
           }}
           className="px-3 py-2 bg-navy-mid border border-border text-white rounded-lg text-sm outline-none cursor-pointer"
@@ -673,6 +673,7 @@ export function Sales() {
           <option value="all">All Status</option>
           <option value="paid">Paid</option>
           <option value="unpaid">Unpaid</option>
+          <option value="revoked">Revoked</option>
         </select>
       </div>
 
@@ -761,15 +762,21 @@ export function Sales() {
                     {transaction.salesId}
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
-                    <span
-                      className={`inline-block px-2.5 py-0.5 rounded-lg text-xs font-semibold ${
+                    <select
+                      value={transaction.status}
+                      onChange={(e) => handleStatusChange(transaction.id, e.target.value as "paid" | "unpaid" | "revoked")}
+                      className={`px-2.5 py-0.5 rounded-lg text-xs font-semibold border-0 cursor-pointer ${
                         transaction.status === "paid"
                           ? "bg-green text-white"
-                          : "bg-red text-white"
+                          : transaction.status === "unpaid"
+                          ? "bg-red text-white"
+                          : "bg-gray-500 text-white"
                       }`}
                     >
-                      {transaction.status === "paid" ? "Paid" : "Unpaid"}
-                    </span>
+                      <option value="paid">Paid</option>
+                      <option value="unpaid">Unpaid</option>
+                      <option value="revoked">Revoked</option>
+                    </select>
                   </td>
                   <td className="px-3 py-3 whitespace-nowrap">
                     <div className="flex gap-1">

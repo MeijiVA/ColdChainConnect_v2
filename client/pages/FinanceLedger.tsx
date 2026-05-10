@@ -53,7 +53,7 @@ interface AccountsReceivable {
   customerName: string;
   date: string;
   amount: number;
-  status: "paid" | "unpaid";
+  status: "paid" | "unpaid" | "revoked";
   dueDate: string;
 }
 
@@ -407,7 +407,7 @@ export function FinanceLedger() {
     });
   };
 
-  const handleUpdateReceivableStatus = (id: string, newStatus: "paid" | "unpaid") => {
+  const handleUpdateReceivableStatus = (id: string, newStatus: "paid" | "unpaid" | "revoked") => {
     setAccountsReceivable(
       accountsReceivable.map((ar) =>
         ar.id === id ? { ...ar, status: newStatus } : ar
@@ -419,7 +419,7 @@ export function FinanceLedger() {
     });
   };
 
-  const handleUpdatePayableStatus = (id: string, newStatus: "paid" | "unpaid") => {
+  const handleUpdatePayableStatus = (id: string, newStatus: "paid" | "unpaid" | "revoked") => {
     setAccountsPayable(
       accountsPayable.map((ap) =>
         ap.id === id ? { ...ap, status: newStatus } : ap
@@ -835,16 +835,19 @@ export function FinanceLedger() {
                           <select
                             value={ar.status}
                             onChange={(e) =>
-                              handleUpdateReceivableStatus(ar.id, e.target.value as "paid" | "unpaid")
+                              handleUpdateReceivableStatus(ar.id, e.target.value as "paid" | "unpaid" | "revoked")
                             }
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${
                               ar.status === "paid"
                                 ? "bg-green/15 text-green"
-                                : "bg-yellow/15 text-yellow"
+                                : ar.status === "unpaid"
+                                ? "bg-yellow/15 text-yellow"
+                                : "bg-gray-400/15 text-gray-600"
                             }`}
                           >
                             <option value="paid">Paid</option>
                             <option value="unpaid">Unpaid</option>
+                            <option value="revoked">Revoked</option>
                           </select>
                         </td>
                       </tr>
@@ -920,16 +923,19 @@ export function FinanceLedger() {
                           <select
                             value={ap.status}
                             onChange={(e) =>
-                              handleUpdatePayableStatus(ap.id, e.target.value as "paid" | "unpaid")
+                              handleUpdatePayableStatus(ap.id, e.target.value as "paid" | "unpaid" | "revoked")
                             }
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${
                               ap.status === "paid"
                                 ? "bg-green/15 text-green"
-                                : "bg-yellow/15 text-yellow"
+                                : ap.status === "unpaid"
+                                ? "bg-yellow/15 text-yellow"
+                                : "bg-gray-400/15 text-gray-600"
                             }`}
                           >
                             <option value="unpaid">Unpaid</option>
                             <option value="paid">Paid</option>
+                            <option value="revoked">Revoked</option>
                           </select>
                         </td>
                       </tr>
