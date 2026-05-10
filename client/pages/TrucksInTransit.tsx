@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import jsQR from "jsqr";
+import QrScanner from "qr-scanner";
 // QR Code scanning will use browser's camera API and manual entry
 
 // Truck in transit interface
@@ -703,47 +703,42 @@ function QRScannerModal({
   availableQRs: string[];
 }) {
   const [manualQR, setManualQR] = useState("");
-  const canvasRef = useRef<HTMLCanvasElement>(null);
   const [detectedQR, setDetectedQR] = useState<string | null>(null);
-  const animationFrameRef = useRef<number>();
 
-  // Scan video frames for QR codes
+  // Scan video frames for QR codes with qr-scanner (more robust)
   useEffect(() => {
-    if (!cameraActive || !videoRef.current || !canvasRef.current) return;
+    if (!cameraActive || !videoRef.current) return;
 
-    const scanQRCode = () => {
-      const video = videoRef.current;
-      const canvas = canvasRef.current;
-      if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
-        animationFrameRef.current = requestAnimationFrame(scanQRCode);
-        return;
+    let scanner: QrScanner | null = null;
+
+    const initScanner = async () => {
+      try {
+        scanner = new QrScanner(
+          videoRef.current!,
+          (result) => {
+            if (result && availableQRs.includes(result.data)) {
+              setDetectedQR(result.data);
+            }
+          },
+          {
+            onDecodeError: () => {}, // Suppress error logs
+            preferredCamera: "environment",
+            highlightCodeOutline: false,
+            maxScans: 1,
+          }
+        );
+
+        await scanner.start();
+      } catch (err) {
+        console.error("Scanner init error:", err);
       }
-
-      const context = canvas.getContext("2d");
-      if (!context) {
-        animationFrameRef.current = requestAnimationFrame(scanQRCode);
-        return;
-      }
-
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-      const code = jsQR(imageData.data, imageData.width, imageData.height);
-
-      if (code && code.data && availableQRs.includes(code.data)) {
-        setDetectedQR(code.data);
-      }
-
-      animationFrameRef.current = requestAnimationFrame(scanQRCode);
     };
 
-    animationFrameRef.current = requestAnimationFrame(scanQRCode);
+    initScanner();
 
     return () => {
-      if (animationFrameRef.current) {
-        cancelAnimationFrame(animationFrameRef.current);
+      if (scanner) {
+        scanner.stop();
       }
     };
   }, [cameraActive, availableQRs]);
@@ -791,7 +786,6 @@ function QRScannerModal({
                   muted
                   className="w-full h-full object-cover"
                 />
-                <canvas ref={canvasRef} className="hidden" />
                 {detectedQR && (
                   <div className="absolute inset-0 border-4 border-green flex items-center justify-center">
                     <div className="text-white text-center">
