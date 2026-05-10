@@ -152,6 +152,7 @@ export function Inventory() {
   const [isBatchModalOpen, setIsBatchModalOpen] = useState(false);
   const [newBatchName, setNewBatchName] = useState("");
   const [showDeleteButtons, setShowDeleteButtons] = useState(false);
+  const [startBatchCreation, setStartBatchCreation] = useState(false);
 
   // Form state for add/edit
   const [formData, setFormData] = useState<InventoryProduct>({
@@ -502,8 +503,7 @@ export function Inventory() {
           <button
             onClick={() => {
               setNewBatchName("");
-              setIsCreatingBatch(true);
-              setBatchItems([]);
+              setStartBatchCreation(true);
               setIsBatchModalOpen(true);
             }}
             className="px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity w-fit"
@@ -836,10 +836,14 @@ export function Inventory() {
             );
             setIsBatchModalOpen(false);
           }}
-          onClose={() => setIsBatchModalOpen(false)}
+          onClose={() => {
+            setIsBatchModalOpen(false);
+            setStartBatchCreation(false);
+          }}
           newBatchName={newBatchName}
           setNewBatchName={setNewBatchName}
           products={products}
+          startCreating={startBatchCreation}
         />
       )}
 
@@ -1051,6 +1055,7 @@ function BatchModal({
   newBatchName,
   setNewBatchName,
   products,
+  startCreating = false,
 }: {
   batches: Batch[];
   selectedBatchId: string;
@@ -1062,8 +1067,9 @@ function BatchModal({
   newBatchName: string;
   setNewBatchName: (name: string) => void;
   products: InventoryProduct[];
+  startCreating?: boolean;
 }) {
-  const [isCreatingBatch, setIsCreatingBatch] = useState(false);
+  const [isCreatingBatch, setIsCreatingBatch] = useState(startCreating);
   const [isEditingBatch, setIsEditingBatch] = useState(false);
   const [editingBatchId, setEditingBatchId] = useState<string>("");
   const [batchItems, setBatchItems] = useState<BatchItem[]>([]);
