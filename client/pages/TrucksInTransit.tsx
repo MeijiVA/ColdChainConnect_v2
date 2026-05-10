@@ -728,8 +728,8 @@ function QRScannerModal({
                 autoPlay
                 playsInline
                 muted
-                className="w-full rounded-lg bg-black"
-                style={{ height: "300px" }}
+                className="w-full rounded-lg bg-black object-cover"
+                style={{ height: "300px", display: "block" }}
               />
               <button
                 onClick={closeCamera}
