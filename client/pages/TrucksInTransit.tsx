@@ -224,15 +224,22 @@ export function TrucksInTransit() {
   // Open camera for QR scanning
   const openCamera = async () => {
     try {
+      setCameraActive(true);
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: {
+          facingMode: "environment",
+          width: { ideal: 1280 },
+          height: { ideal: 720 }
+        },
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-        setCameraActive(true);
+        videoRef.current.onloadedmetadata = () => {
+          videoRef.current?.play().catch(err => console.error("Play error:", err));
+        };
       }
     } catch (err) {
+      setCameraActive(false);
       const errorMsg = err instanceof DOMException ? err.message : String(err);
       alert("Unable to access camera: " + errorMsg);
       console.error("Camera error:", err);
@@ -723,14 +730,15 @@ function QRScannerModal({
             </button>
           ) : (
             <>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                muted
-                className="w-full rounded-lg bg-black object-cover"
-                style={{ height: "300px", display: "block" }}
-              />
+              <div className="relative w-full bg-black rounded-lg overflow-hidden" style={{ height: "300px" }}>
+                <video
+                  ref={videoRef}
+                  autoPlay
+                  playsInline
+                  muted
+                  className="w-full h-full object-cover"
+                />
+              </div>
               <button
                 onClick={closeCamera}
                 className="w-full px-4 py-2 bg-red text-white rounded-lg font-semibold hover:opacity-90"
