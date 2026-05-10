@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import jsQR from "jsqr";
 // QR Code scanning will use browser's camera API and manual entry
 
 // Truck in transit interface
@@ -702,6 +703,58 @@ function QRScannerModal({
   availableQRs: string[];
 }) {
   const [manualQR, setManualQR] = useState("");
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [detectedQR, setDetectedQR] = useState<string | null>(null);
+  const animationFrameRef = useRef<number>();
+
+  // Scan video frames for QR codes
+  useEffect(() => {
+    if (!cameraActive || !videoRef.current || !canvasRef.current) return;
+
+    const scanQRCode = () => {
+      const video = videoRef.current;
+      const canvas = canvasRef.current;
+      if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA) {
+        animationFrameRef.current = requestAnimationFrame(scanQRCode);
+        return;
+      }
+
+      const context = canvas.getContext("2d");
+      if (!context) {
+        animationFrameRef.current = requestAnimationFrame(scanQRCode);
+        return;
+      }
+
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+
+      if (code && code.data && availableQRs.includes(code.data)) {
+        setDetectedQR(code.data);
+      }
+
+      animationFrameRef.current = requestAnimationFrame(scanQRCode);
+    };
+
+    animationFrameRef.current = requestAnimationFrame(scanQRCode);
+
+    return () => {
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+    };
+  }, [cameraActive, availableQRs]);
+
+  const handleDetectedQRScan = () => {
+    if (detectedQR && availableQRs.includes(detectedQR)) {
+      onScan(detectedQR);
+      setDetectedQR(null);
+      setManualQR("");
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -738,6 +791,15 @@ function QRScannerModal({
                   muted
                   className="w-full h-full object-cover"
                 />
+                <canvas ref={canvasRef} className="hidden" />
+                {detectedQR && (
+                  <div className="absolute inset-0 border-4 border-green flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <div className="text-lg font-bold">✓ QR Detected</div>
+                      <div className="text-sm">{detectedQR}</div>
+                    </div>
+                  </div>
+                )}
               </div>
               <button
                 onClick={closeCamera}
@@ -748,6 +810,20 @@ function QRScannerModal({
             </>
           )}
         </div>
+
+        {/* Detected QR Action */}
+        {detectedQR && (
+          <div className="bg-green/10 border border-green/30 rounded-lg p-3 space-y-2">
+            <p className="text-xs text-muted">QR Code Detected:</p>
+            <p className="font-semibold text-green text-sm font-mono">{detectedQR}</p>
+            <button
+              onClick={handleDetectedQRScan}
+              className="w-full px-4 py-2 bg-green text-white rounded-lg font-semibold hover:opacity-90 text-sm"
+            >
+              ✓ Confirm & Submit
+            </button>
+          </div>
+        )}
 
         {/* Manual Entry */}
         <div className="space-y-2 pt-4 border-t border-border">
