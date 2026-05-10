@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 
 // REQ-INV-001: Product interface with all required fields
+// QR modal camera removed - now available in Dispatch page only
 interface InventoryProduct {
   id: string;
   sku: string; // SKU code
