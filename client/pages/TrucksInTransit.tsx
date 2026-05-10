@@ -229,10 +229,13 @@ export function TrucksInTransit() {
       });
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
+        await videoRef.current.play();
         setCameraActive(true);
       }
     } catch (err) {
-      alert("Unable to access camera: " + (err as Error).message);
+      const errorMsg = err instanceof DOMException ? err.message : String(err);
+      alert("Unable to access camera: " + errorMsg);
+      console.error("Camera error:", err);
     }
   };
 
@@ -724,6 +727,7 @@ function QRScannerModal({
                 ref={videoRef}
                 autoPlay
                 playsInline
+                muted
                 className="w-full rounded-lg bg-black"
                 style={{ height: "300px" }}
               />
