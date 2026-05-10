@@ -21,8 +21,11 @@ export function Topbar({ userName, onSettingsClick, onLogout }: TopbarProps) {
   return (
     <header className="bg-navy px-6 md:px-8 py-4 flex items-center justify-between flex-shrink-0 sticky top-0 z-10 shadow-sm gap-4">
       {/* Logo */}
-      <div className="font-rajdhani text-2xl font-bold letter-spacing-wider text-white flex-shrink-0">
-        ACDP
+      <div className="flex items-center gap-2 flex-shrink-0">
+        <img src="https://cdn.builder.io/api/v1/image/assets%2F95235f61d85340cc8929dd5e2ec9cafe%2F04690f469f254fd393684ed5411b7cab?format=webp&width=800&height=1200" alt="ACDP Logo" className="w-8 h-8 object-cover rounded-full" />
+        <div className="font-rajdhani text-2xl font-bold letter-spacing-wider text-white">
+          ACDP
+        </div>
       </div>
 
       {/* Search Bar */}

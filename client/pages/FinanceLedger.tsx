@@ -5,7 +5,16 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { TrendingUp, TrendingDown, DollarSign, AlertCircle } from "lucide-react";
 
-type TabType = "expenses" | "operations" | "maintenance" | "receivables" | "payables";
+type TabType = "expense-records" | "receivables" | "payables";
+
+interface ExpenseRecord {
+  id: string;
+  date: string;
+  category: string;
+  description: string;
+  amount: number;
+  status: "pending" | "approved" | "rejected" | "completed" | "scheduled";
+}
 
 interface Expense {
   id: string;
@@ -256,7 +265,7 @@ const mockAccountsPayable: AccountsPayable[] = [
 ];
 
 export function FinanceLedger() {
-  const [activeTab, setActiveTab] = useState<TabType>("expenses");
+  const [activeTab, setActiveTab] = useState<TabType>("expense-records");
   const [expenses, setExpenses] = useState<Expense[]>(mockExpenses);
   const [operationalCosts, setOperationalCosts] = useState<OperationalCost[]>(
     mockOperationalCosts
@@ -270,6 +279,44 @@ export function FinanceLedger() {
   const [accountsPayable, setAccountsPayable] = useState<AccountsPayable[]>(
     mockAccountsPayable
   );
+  const [expenseRecords, setExpenseRecords] = useState<ExpenseRecord[]>(() => {
+    const combined: ExpenseRecord[] = [];
+
+    mockExpenses.forEach(e => {
+      combined.push({
+        id: `exp-${e.id}`,
+        date: e.date,
+        category: e.category,
+        description: e.description,
+        amount: e.amount,
+        status: e.status,
+      });
+    });
+
+    mockOperationalCosts.forEach(oc => {
+      combined.push({
+        id: `op-${oc.id}`,
+        date: oc.date,
+        category: oc.category,
+        description: oc.description,
+        amount: oc.amount,
+        status: oc.status,
+      });
+    });
+
+    mockMaintenanceRecords.forEach(mr => {
+      combined.push({
+        id: `mnt-${mr.id}`,
+        date: mr.date,
+        category: "Maintenance",
+        description: `${mr.service} - ${mr.truck}`,
+        amount: mr.cost,
+        status: mr.status as any,
+      });
+    });
+
+    return combined.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  });
   const [showAddForm, setShowAddForm] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
@@ -280,23 +327,7 @@ export function FinanceLedger() {
     category: "Maintenance",
     description: "",
     amount: "",
-  });
-
-  const [operationalForm, setOperationalForm] = useState({
-    date: "",
-    category: "Fuel",
-    description: "",
-    amount: "",
-  });
-
-  const [maintenanceForm, setMaintenanceForm] = useState({
-    date: "",
-    truck: "",
-    serviceProvider: "",
-    service: "",
-    cost: "",
-    mileage: "",
-    nextServiceDue: "",
+    status: "pending" as const,
   });
 
   const handleAddExpense = async () => {
@@ -316,78 +347,31 @@ export function FinanceLedger() {
     setIsSubmitting(true);
     try {
       await new Promise((resolve) => setTimeout(resolve, 500));
-      const newExpense: Expense = {
-        id: String(expenses.length + 1),
+      const newRecord: ExpenseRecord = {
+        id: `exp-${Date.now()}`,
         date: expenseForm.date,
         category: expenseForm.category,
         description: expenseForm.description,
         amount: parseFloat(expenseForm.amount),
-        status: "pending",
+        status: expenseForm.status,
       };
-      setExpenses([newExpense, ...expenses]);
+      setExpenseRecords([newRecord, ...expenseRecords]);
       setExpenseForm({
         date: "",
         category: "Maintenance",
         description: "",
         amount: "",
-      });
-      setShowAddForm(false);
-      toast({
-        title: "Success",
-        description: "Expense logged successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add expense.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleAddOperational = async () => {
-    if (
-      !operationalForm.date ||
-      !operationalForm.description ||
-      !operationalForm.amount
-    ) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const newCost: OperationalCost = {
-        id: String(operationalCosts.length + 1),
-        date: operationalForm.date,
-        category: operationalForm.category,
-        description: operationalForm.description,
-        amount: parseFloat(operationalForm.amount),
         status: "pending",
-      };
-      setOperationalCosts([newCost, ...operationalCosts]);
-      setOperationalForm({
-        date: "",
-        category: "Fuel",
-        description: "",
-        amount: "",
       });
       setShowAddForm(false);
       toast({
         title: "Success",
-        description: "Operational cost logged successfully.",
+        description: "Expense record added successfully.",
       });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to add operational cost.",
+        description: "Failed to add expense record.",
         variant: "destructive",
       });
     } finally {
@@ -395,62 +379,6 @@ export function FinanceLedger() {
     }
   };
 
-  const handleAddMaintenance = async () => {
-    if (
-      !maintenanceForm.date ||
-      !maintenanceForm.truck ||
-      !maintenanceForm.serviceProvider ||
-      !maintenanceForm.service ||
-      !maintenanceForm.cost ||
-      !maintenanceForm.mileage
-    ) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsSubmitting(true);
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-      const newRecord: MaintenanceRecord = {
-        id: String(maintenanceRecords.length + 1),
-        date: maintenanceForm.date,
-        truck: maintenanceForm.truck,
-        serviceProvider: maintenanceForm.serviceProvider,
-        service: maintenanceForm.service,
-        cost: parseFloat(maintenanceForm.cost),
-        mileage: parseInt(maintenanceForm.mileage),
-        nextServiceDue: maintenanceForm.nextServiceDue,
-        status: "pending",
-      };
-      setMaintenanceRecords([newRecord, ...maintenanceRecords]);
-      setMaintenanceForm({
-        date: "",
-        truck: "",
-        serviceProvider: "",
-        service: "",
-        cost: "",
-        mileage: "",
-        nextServiceDue: "",
-      });
-      setShowAddForm(false);
-      toast({
-        title: "Success",
-        description: "Maintenance record added successfully.",
-      });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add maintenance record.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
 
   const getStatusBadgeColor = (status: string) => {
     switch (status) {
@@ -467,39 +395,15 @@ export function FinanceLedger() {
     }
   };
 
-  const handleUpdateExpenseStatus = (id: string, newStatus: "pending" | "approved" | "rejected") => {
-    setExpenses(
-      expenses.map((e) =>
-        e.id === id ? { ...e, status: newStatus } : e
+  const handleUpdateExpenseRecordStatus = (id: string, newStatus: string) => {
+    setExpenseRecords(
+      expenseRecords.map((r) =>
+        r.id === id ? { ...r, status: newStatus as any } : r
       )
     );
     toast({
       title: "Success",
-      description: `Expense status updated to ${newStatus}.`,
-    });
-  };
-
-  const handleUpdateOperationalStatus = (id: string, newStatus: "pending" | "approved" | "rejected") => {
-    setOperationalCosts(
-      operationalCosts.map((c) =>
-        c.id === id ? { ...c, status: newStatus } : c
-      )
-    );
-    toast({
-      title: "Success",
-      description: `Operational cost status updated to ${newStatus}.`,
-    });
-  };
-
-  const handleUpdateMaintenanceStatus = (id: string, newStatus: "completed" | "scheduled" | "pending") => {
-    setMaintenanceRecords(
-      maintenanceRecords.map((r) =>
-        r.id === id ? { ...r, status: newStatus } : r
-      )
-    );
-    toast({
-      title: "Success",
-      description: `Maintenance status updated to ${newStatus}.`,
+      description: `Status updated to ${newStatus}.`,
     });
   };
 
@@ -527,9 +431,9 @@ export function FinanceLedger() {
     });
   };
 
-  const totalExpenses = expenses.reduce((sum, e) => sum + e.amount, 0);
-  const totalOperational = operationalCosts.reduce((sum, c) => sum + c.amount, 0);
-  const totalMaintenance = maintenanceRecords.reduce((sum, r) => sum + r.cost, 0);
+  const totalExpenses = expenseRecords.reduce((sum, r) => sum + r.amount, 0);
+  const totalOperational = expenseRecords.reduce((sum, r) => sum + r.amount, 0);
+  const totalMaintenance = expenseRecords.reduce((sum, r) => sum + r.amount, 0);
   const totalReceivables = accountsReceivable.reduce((sum, ar) => sum + ar.amount, 0);
   const paidReceivables = accountsReceivable
     .filter((ar) => ar.status === "paid")
@@ -542,11 +446,10 @@ export function FinanceLedger() {
     .reduce((sum, ap) => sum + ap.amount, 0);
   const unpaidPayables = totalPayables - paidPayables;
 
-  const pendingExpenses = expenses.filter((e) => e.status === "pending").reduce((sum, e) => sum + e.amount, 0);
-  const pendingOperational = operationalCosts.filter((c) => c.status === "pending").reduce((sum, c) => sum + c.amount, 0);
+  const pendingExpenses = expenseRecords.filter((r) => r.status === "pending").reduce((sum, r) => sum + r.amount, 0);
 
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-visible">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -557,64 +460,7 @@ export function FinanceLedger() {
         </div>
 
         {/* Main Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card className="p-6 border-l-4 border-l-accent bg-gradient-to-br from-navy/5 to-transparent">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-muted mb-1">
-                  Total Expenses
-                </h3>
-                <p className="text-2xl md:text-3xl font-bold text-navy">
-                  ₱{totalExpenses.toLocaleString()}
-                </p>
-                <p className="text-xs text-muted mt-2">
-                  {expenses.length} records
-                </p>
-              </div>
-              <div className="bg-accent/10 p-3 rounded-lg">
-                <TrendingDown className="text-accent" size={24} />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 border-l-4 border-l-accent-2 bg-gradient-to-br from-accent-2/5 to-transparent">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-muted mb-1">
-                  Operational Costs
-                </h3>
-                <p className="text-2xl md:text-3xl font-bold text-navy">
-                  ₱{totalOperational.toLocaleString()}
-                </p>
-                <p className="text-xs text-muted mt-2">
-                  {operationalCosts.length} entries
-                </p>
-              </div>
-              <div className="bg-accent-2/10 p-3 rounded-lg">
-                <DollarSign className="text-accent-2" size={24} />
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6 border-l-4 border-l-gold bg-gradient-to-br from-gold/5 to-transparent">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="text-sm font-semibold text-muted mb-1">
-                  Maintenance Costs
-                </h3>
-                <p className="text-2xl md:text-3xl font-bold text-navy">
-                  ₱{totalMaintenance.toLocaleString()}
-                </p>
-                <p className="text-xs text-muted mt-2">
-                  {maintenanceRecords.length} records
-                </p>
-              </div>
-              <div className="bg-gold/10 p-3 rounded-lg">
-                <TrendingUp className="text-gold" size={24} />
-              </div>
-            </div>
-          </Card>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
           <Card className="p-6 border-l-4 border-l-green bg-gradient-to-br from-green/5 to-transparent">
             <div className="flex items-start justify-between">
               <div>
@@ -661,7 +507,7 @@ export function FinanceLedger() {
               <AlertCircle className="text-yellow" size={20} />
               <div>
                 <h4 className="text-xs font-semibold text-muted">Pending Approvals</h4>
-                <p className="text-lg font-bold text-navy">₱{(pendingExpenses + pendingOperational).toLocaleString()}</p>
+                <p className="text-lg font-bold text-navy">₱{pendingExpenses.toLocaleString()}</p>
               </div>
             </div>
           </Card>
@@ -700,34 +546,14 @@ export function FinanceLedger() {
         {/* Tab Navigation */}
         <div className="flex gap-2 mb-6 border-b border-border overflow-x-auto">
           <button
-            onClick={() => setActiveTab("expenses")}
+            onClick={() => setActiveTab("expense-records")}
             className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
-              activeTab === "expenses"
+              activeTab === "expense-records"
                 ? "border-accent text-accent"
                 : "border-transparent text-muted hover:text-navy"
             }`}
           >
-            Maintenance Expenses
-          </button>
-          <button
-            onClick={() => setActiveTab("operations")}
-            className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
-              activeTab === "operations"
-                ? "border-accent text-accent"
-                : "border-transparent text-muted hover:text-navy"
-            }`}
-          >
-            Operational Costs
-          </button>
-          <button
-            onClick={() => setActiveTab("maintenance")}
-            className={`px-4 py-3 font-semibold transition-all border-b-2 whitespace-nowrap ${
-              activeTab === "maintenance"
-                ? "border-accent text-accent"
-                : "border-transparent text-muted hover:text-navy"
-            }`}
-          >
-            Maintenance Records
+            Financial Records
           </button>
           <button
             onClick={() => setActiveTab("receivables")}
@@ -752,29 +578,24 @@ export function FinanceLedger() {
         </div>
 
         {/* Tab Content */}
-        {activeTab === "expenses" && (
+        {activeTab === "expense-records" && (
           <div className="space-y-4">
             <div className="flex justify-between items-center mb-4">
               <h2 className="text-xl font-bold text-navy">
-                Maintenance Expenses
+                Financial Records
               </h2>
               <Button
-                onClick={() => {
-                  setShowAddForm(!showAddForm);
-                  if (showAddForm) {
-                    setActiveTab("expenses");
-                  }
-                }}
+                onClick={() => setShowAddForm(!showAddForm)}
                 className="bg-accent hover:bg-accent-dark text-white"
               >
-                {showAddForm ? "Cancel" : "+ Add Expense"}
+                {showAddForm ? "Cancel" : "+ Add Record"}
               </Button>
             </div>
 
             {showAddForm && (
               <Card className="p-6 mb-4 bg-off-white border-2 border-accent/20">
                 <h3 className="font-bold text-navy mb-4">
-                  Log New Maintenance Expense
+                  Log New Financial Record
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                   <div>
@@ -804,9 +625,14 @@ export function FinanceLedger() {
                       className="w-full px-3 py-2 border border-border rounded bg-white text-navy"
                     >
                       <option>Maintenance</option>
+                      <option>Fuel</option>
+                      <option>Tolls</option>
                       <option>Repairs</option>
                       <option>Parts</option>
-                      <option>Inspection</option>
+                      <option>Office Supplies</option>
+                      <option>Utilities</option>
+                      <option>Insurance</option>
+                      <option>Other</option>
                     </select>
                   </div>
                 </div>
@@ -825,18 +651,41 @@ export function FinanceLedger() {
                     placeholder="e.g., Truck #T001 Oil Change"
                   />
                 </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-navy mb-2">
-                    Amount (₱)
-                  </label>
-                  <Input
-                    type="number"
-                    value={expenseForm.amount}
-                    onChange={(e) =>
-                      setExpenseForm({ ...expenseForm, amount: e.target.value })
-                    }
-                    placeholder="0.00"
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-navy mb-2">
+                      Amount (₱)
+                    </label>
+                    <Input
+                      type="number"
+                      value={expenseForm.amount}
+                      onChange={(e) =>
+                        setExpenseForm({ ...expenseForm, amount: e.target.value })
+                      }
+                      placeholder="0.00"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-navy mb-2">
+                      Status
+                    </label>
+                    <select
+                      value={expenseForm.status}
+                      onChange={(e) =>
+                        setExpenseForm({
+                          ...expenseForm,
+                          status: e.target.value as any,
+                        })
+                      }
+                      className="w-full px-3 py-2 border border-border rounded bg-white text-navy"
+                    >
+                      <option value="pending">Pending</option>
+                      <option value="approved">Approved</option>
+                      <option value="rejected">Rejected</option>
+                      <option value="completed">Completed</option>
+                      <option value="scheduled">Scheduled</option>
+                    </select>
+                  </div>
                 </div>
                 <div className="flex justify-end gap-2">
                   <Button
@@ -850,401 +699,6 @@ export function FinanceLedger() {
                     disabled={isSubmitting}
                     className="bg-accent hover:bg-accent-dark text-white"
                   >
-                    {isSubmitting ? "Saving..." : "Save Expense"}
-                  </Button>
-                </div>
-              </Card>
-            )}
-
-            <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-navy-mid">
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Date
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Category
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Description
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-white">
-                        Amount
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {expenses.map((expense) => (
-                      <tr
-                        key={expense.id}
-                        className="border-b border-border hover:bg-off-white transition-colors"
-                      >
-                        <td className="py-3 px-4 text-navy font-medium">
-                          {expense.date}
-                        </td>
-                        <td className="py-3 px-4 text-navy">
-                          {expense.category}
-                        </td>
-                        <td className="py-3 px-4 text-muted">
-                          {expense.description}
-                        </td>
-                        <td className="py-3 px-4 text-right font-bold text-navy">
-                          ₱{expense.amount.toFixed(2)}
-                        </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <select
-                            value={expense.status}
-                            onChange={(e) =>
-                              handleUpdateExpenseStatus(expense.id, e.target.value as "pending" | "approved" | "rejected")
-                            }
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${getStatusBadgeColor(
-                              expense.status
-                            )}`}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === "operations" && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-navy">
-                Operational Costs
-              </h2>
-              <Button
-                onClick={() => {
-                  setShowAddForm(!showAddForm);
-                  if (showAddForm) {
-                    setActiveTab("operations");
-                  }
-                }}
-                className="bg-accent hover:bg-accent-dark text-white"
-              >
-                {showAddForm ? "Cancel" : "+ Add Cost"}
-              </Button>
-            </div>
-
-            {showAddForm && (
-              <Card className="p-6 mb-4 bg-off-white border-2 border-accent/20">
-                <h3 className="font-bold text-navy mb-4">
-                  Log New Operational Cost
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Date
-                    </label>
-                    <Input
-                      type="date"
-                      value={operationalForm.date}
-                      onChange={(e) =>
-                        setOperationalForm({
-                          ...operationalForm,
-                          date: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Category
-                    </label>
-                    <select
-                      value={operationalForm.category}
-                      onChange={(e) =>
-                        setOperationalForm({
-                          ...operationalForm,
-                          category: e.target.value,
-                        })
-                      }
-                      className="w-full px-3 py-2 border border-border rounded bg-white text-navy"
-                    >
-                      <option>Fuel</option>
-                      <option>Tolls</option>
-                      <option>Office Supplies</option>
-                      <option>Utilities</option>
-                      <option>Insurance</option>
-                      <option>Other</option>
-                    </select>
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-navy mb-2">
-                    Description
-                  </label>
-                  <Input
-                    value={operationalForm.description}
-                    onChange={(e) =>
-                      setOperationalForm({
-                        ...operationalForm,
-                        description: e.target.value,
-                      })
-                    }
-                    placeholder="e.g., Fuel for Truck #T001 - 250L"
-                  />
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-navy mb-2">
-                    Amount (₱)
-                  </label>
-                  <Input
-                    type="number"
-                    value={operationalForm.amount}
-                    onChange={(e) =>
-                      setOperationalForm({
-                        ...operationalForm,
-                        amount: e.target.value,
-                      })
-                    }
-                    placeholder="0.00"
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    onClick={() => setShowAddForm(false)}
-                    variant="outline"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleAddOperational}
-                    disabled={isSubmitting}
-                    className="bg-accent hover:bg-accent-dark text-white"
-                  >
-                    {isSubmitting ? "Saving..." : "Save Cost"}
-                  </Button>
-                </div>
-              </Card>
-            )}
-
-            <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-navy-mid">
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Date
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Category
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Description
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-white">
-                        Amount
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {operationalCosts.map((cost) => (
-                      <tr
-                        key={cost.id}
-                        className="border-b border-border hover:bg-off-white transition-colors"
-                      >
-                        <td className="py-3 px-4 text-navy font-medium">
-                          {cost.date}
-                        </td>
-                        <td className="py-3 px-4 text-navy">
-                          {cost.category}
-                        </td>
-                        <td className="py-3 px-4 text-muted">
-                          {cost.description}
-                        </td>
-                        <td className="py-3 px-4 text-right font-bold text-navy">
-                          ₱{cost.amount.toFixed(2)}
-                        </td>
-                        <td className="py-3 px-4 whitespace-nowrap">
-                          <select
-                            value={cost.status}
-                            onChange={(e) =>
-                              handleUpdateOperationalStatus(cost.id, e.target.value as "pending" | "approved" | "rejected")
-                            }
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${getStatusBadgeColor(
-                              cost.status
-                            )}`}
-                          >
-                            <option value="pending">Pending</option>
-                            <option value="approved">Approved</option>
-                            <option value="rejected">Rejected</option>
-                          </select>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </Card>
-          </div>
-        )}
-
-        {activeTab === "maintenance" && (
-          <div className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-bold text-navy">
-                Maintenance Records
-              </h2>
-              <Button
-                onClick={() => {
-                  setShowAddForm(!showAddForm);
-                  if (showAddForm) {
-                    setActiveTab("maintenance");
-                  }
-                }}
-                className="bg-accent hover:bg-accent-dark text-white"
-              >
-                {showAddForm ? "Cancel" : "+ Add Record"}
-              </Button>
-            </div>
-
-            {showAddForm && (
-              <Card className="p-6 mb-4 bg-off-white border-2 border-accent/20">
-                <h3 className="font-bold text-navy mb-4">
-                  Add Truck Maintenance Record
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Service Date
-                    </label>
-                    <Input
-                      type="date"
-                      value={maintenanceForm.date}
-                      onChange={(e) =>
-                        setMaintenanceForm({
-                          ...maintenanceForm,
-                          date: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Truck ID
-                    </label>
-                    <Input
-                      value={maintenanceForm.truck}
-                      onChange={(e) =>
-                        setMaintenanceForm({
-                          ...maintenanceForm,
-                          truck: e.target.value,
-                        })
-                      }
-                      placeholder="e.g., T001"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Service Provider
-                    </label>
-                    <Input
-                      value={maintenanceForm.serviceProvider}
-                      onChange={(e) =>
-                        setMaintenanceForm({
-                          ...maintenanceForm,
-                          serviceProvider: e.target.value,
-                        })
-                      }
-                      placeholder="e.g., Quick Fix Auto"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Mileage
-                    </label>
-                    <Input
-                      type="number"
-                      value={maintenanceForm.mileage}
-                      onChange={(e) =>
-                        setMaintenanceForm({
-                          ...maintenanceForm,
-                          mileage: e.target.value,
-                        })
-                      }
-                      placeholder="Current mileage"
-                    />
-                  </div>
-                </div>
-                <div className="mb-4">
-                  <label className="block text-sm font-semibold text-navy mb-2">
-                    Service/Repair Details
-                  </label>
-                  <Input
-                    value={maintenanceForm.service}
-                    onChange={(e) =>
-                      setMaintenanceForm({
-                        ...maintenanceForm,
-                        service: e.target.value,
-                      })
-                    }
-                    placeholder="e.g., Oil Change & Filter Replacement"
-                  />
-                </div>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Cost (₱)
-                    </label>
-                    <Input
-                      type="number"
-                      value={maintenanceForm.cost}
-                      onChange={(e) =>
-                        setMaintenanceForm({
-                          ...maintenanceForm,
-                          cost: e.target.value,
-                        })
-                      }
-                      placeholder="0.00"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-semibold text-navy mb-2">
-                      Next Service Due
-                    </label>
-                    <Input
-                      type="date"
-                      value={maintenanceForm.nextServiceDue}
-                      onChange={(e) =>
-                        setMaintenanceForm({
-                          ...maintenanceForm,
-                          nextServiceDue: e.target.value,
-                        })
-                      }
-                    />
-                  </div>
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button
-                    onClick={() => setShowAddForm(false)}
-                    variant="outline"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={handleAddMaintenance}
-                    disabled={isSubmitting}
-                    className="bg-accent hover:bg-accent-dark text-white"
-                  >
                     {isSubmitting ? "Saving..." : "Save Record"}
                   </Button>
                 </div>
@@ -1252,7 +706,7 @@ export function FinanceLedger() {
             )}
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">
@@ -1260,22 +714,13 @@ export function FinanceLedger() {
                         Date
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-white">
-                        Truck
+                        Category
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-white">
-                        Service Provider
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Service
+                        Description
                       </th>
                       <th className="text-right py-3 px-4 font-semibold text-white">
-                        Cost
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Mileage
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-white">
-                        Next Due
+                        Amount
                       </th>
                       <th className="text-left py-3 px-4 font-semibold text-white">
                         Status
@@ -1283,7 +728,7 @@ export function FinanceLedger() {
                     </tr>
                   </thead>
                   <tbody>
-                    {maintenanceRecords.map((record) => (
+                    {expenseRecords.map((record) => (
                       <tr
                         key={record.id}
                         className="border-b border-border hover:bg-off-white transition-colors"
@@ -1291,37 +736,30 @@ export function FinanceLedger() {
                         <td className="py-3 px-4 text-navy font-medium">
                           {record.date}
                         </td>
-                        <td className="py-3 px-4 font-bold text-accent">
-                          {record.truck}
+                        <td className="py-3 px-4 text-navy">
+                          {record.category}
                         </td>
                         <td className="py-3 px-4 text-muted">
-                          {record.serviceProvider}
-                        </td>
-                        <td className="py-3 px-4 text-muted">
-                          {record.service}
+                          {record.description}
                         </td>
                         <td className="py-3 px-4 text-right font-bold text-navy">
-                          ₱{record.cost.toFixed(2)}
-                        </td>
-                        <td className="py-3 px-4 text-muted">
-                          {record.mileage.toLocaleString()} mi
-                        </td>
-                        <td className="py-3 px-4 text-muted">
-                          {record.nextServiceDue}
+                          ₱{record.amount.toFixed(2)}
                         </td>
                         <td className="py-3 px-4 whitespace-nowrap">
                           <select
                             value={record.status}
                             onChange={(e) =>
-                              handleUpdateMaintenanceStatus(record.id, e.target.value as "completed" | "scheduled" | "pending")
+                              handleUpdateExpenseRecordStatus(record.id, e.target.value)
                             }
                             className={`px-3 py-1.5 rounded-full text-xs font-semibold border-none cursor-pointer transition-all ${getStatusBadgeColor(
                               record.status
                             )}`}
                           >
                             <option value="pending">Pending</option>
-                            <option value="scheduled">Scheduled</option>
+                            <option value="approved">Approved</option>
+                            <option value="rejected">Rejected</option>
                             <option value="completed">Completed</option>
+                            <option value="scheduled">Scheduled</option>
                           </select>
                         </td>
                       </tr>
@@ -1342,7 +780,7 @@ export function FinanceLedger() {
             </div>
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">
@@ -1427,7 +865,7 @@ export function FinanceLedger() {
             </div>
 
             <Card className="overflow-hidden border-2 border-border/50">
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-navy-mid">

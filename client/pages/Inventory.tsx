@@ -466,7 +466,7 @@ export function Inventory() {
   };
 
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide space-y-6">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-visible space-y-6">
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -562,7 +562,7 @@ export function Inventory() {
         {/* Left Column: Batch Products Table (65%) */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl border border-border overflow-hidden">
-            <div className="overflow-x-auto scrollbar-hide text-xs md:text-sm">
+            <div className="overflow-x-auto scrollbar-visible text-xs md:text-sm">
               <table className="w-full">
                 <thead>
                   <tr>
@@ -1394,7 +1394,7 @@ function CreateBatchForm({
       {batchItems.length > 0 && (
         <div>
           <h3 className="text-xs font-semibold text-navy mb-3">Batch Items</h3>
-          <div className="border border-border rounded-lg overflow-x-auto scrollbar-hide">
+          <div className="border border-border rounded-lg overflow-x-auto scrollbar-visible">
             <table className="w-full text-xs">
               <thead>
                 <tr className="bg-navy-mid border-b border-border">

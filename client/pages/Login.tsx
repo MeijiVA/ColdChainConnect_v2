@@ -24,8 +24,8 @@ export function Login({ onLogin }: LoginProps) {
         <div className="absolute bottom-0 left-0 w-56 h-56 rounded-full bg-white/4 translate-y-1/3 -translate-x-1/3"></div>
 
         {/* Logo Ring */}
-        <div className="w-18 h-18 bg-accent rounded-full flex items-center justify-center text-4xl font-bold font-rajdhani letter-spacing-tight relative z-10 box-shadow-lg ring-6 ring-offset-4 ring-accent-2/25">
-          ⊙
+        <div className="w-18 h-18 rounded-full flex items-center justify-center relative z-10 box-shadow-lg overflow-hidden">
+          <img src="https://cdn.builder.io/api/v1/image/assets%2F95235f61d85340cc8929dd5e2ec9cafe%2F04690f469f254fd393684ed5411b7cab?format=webp&width=800&height=1200" alt="ACDP Logo" className="w-full h-full object-cover" />
         </div>
 
         {/* Brand Box */}
@@ -49,8 +49,8 @@ export function Login({ onLogin }: LoginProps) {
       <div className="w-full md:flex-1 flex items-center justify-center px-6 py-8 md:py-12">
         <div className="bg-white rounded-2xl px-8 md:px-10 py-8 md:py-10 w-full max-w-sm md:max-w-md flex flex-col items-center gap-6 shadow-lg md:shadow-xl border border-border">
           {/* Card Logo */}
-          <div className="w-13 h-13 bg-navy rounded-full flex items-center justify-center text-white font-rajdhani text-2xl font-bold">
-            ⊙
+          <div className="w-13 h-13 rounded-full flex items-center justify-center overflow-hidden">
+            <img src="https://cdn.builder.io/api/v1/image/assets%2F95235f61d85340cc8929dd5e2ec9cafe%2Fa05b3bb956c74b3eb3761a234d9f49da?format=webp&width=800&height=1200" alt="Cold Chain Connect Logo" className="w-full h-full object-cover" />
           </div>
 
           <h2 className="font-rajdhani text-2xl text-navy letter-spacing-wider">

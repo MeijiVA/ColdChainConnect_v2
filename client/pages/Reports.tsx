@@ -256,7 +256,55 @@ export function Reports() {
   const handleExport = async (format: "excel" | "pdf", reportType: string) => {
     setIsExporting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      let csvContent = "";
+      const currentDate = new Date().toLocaleDateString();
+
+      if (reportType === "Sales Report") {
+        csvContent = "Sales Report\n";
+        csvContent += `Generated: ${currentDate}\n\n`;
+        csvContent += "Period,Total Revenue,Total Transactions,Average Transaction,Top Product,Top Product Sales\n";
+        mockSalesReports.forEach((report) => {
+          csvContent += `${report.period},${report.totalRevenue},${report.totalTransactions},${report.averageTransaction.toFixed(2)},${report.topProduct},${report.topProductSales}\n`;
+        });
+      } else if (reportType === "Inventory Report") {
+        csvContent = "Inventory Report\n";
+        csvContent += `Generated: ${currentDate}\n\n`;
+        csvContent += "SKU,Product Name,Current Stock,Reorder Level,Status,Value,Expiry Date\n";
+        mockInventoryReports.forEach((item) => {
+          csvContent += `${item.sku},"${item.productName}",${item.currentStock},${item.reorderLevel},${item.status},${item.value},${item.expiryDate}\n`;
+        });
+      } else if (reportType === "Customer Report") {
+        csvContent = "Customer Report\n";
+        csvContent += `Generated: ${currentDate}\n\n`;
+        csvContent += "Customer ID,Customer Name,Total Purchases,Total Spent,Last Purchase Date,Frequency\n";
+        mockCustomerReports.forEach((customer) => {
+          csvContent += `${customer.customerId},"${customer.customerName}",${customer.totalPurchases},${customer.totalSpent},${customer.lastPurchaseDate},"${customer.frequency}"\n`;
+        });
+      } else if (reportType === "Performance Metrics") {
+        csvContent = "Performance Metrics Report\n";
+        csvContent += `Generated: ${currentDate}\n\n`;
+        csvContent += "Ranking,Product Name,Units Sold,Revenue,Growth %\n";
+        mockPerformanceMetrics.forEach((metric) => {
+          csvContent += `#${metric.ranking},${metric.productName},${metric.unitsSold},${metric.revenue},${metric.growth}\n`;
+        });
+      } else if (reportType === "Profit Report") {
+        csvContent = "Profit Report\n";
+        csvContent += `Generated: ${currentDate}\n\n`;
+        csvContent += "Product Name,Unit Price,Cost Price,Profit Margin %,Quantity Sold,Total Profit\n";
+        mockProfitData.forEach((profit) => {
+          csvContent += `"${profit.productName}",${profit.unitPrice},${profit.costPrice},${profit.profitMargin},${profit.quantitySold},${profit.totalProfit}\n`;
+        });
+      }
+
+      const element = document.createElement('a');
+      const file = new Blob([csvContent], { type: 'text/csv' });
+      element.href = URL.createObjectURL(file);
+      element.download = `${reportType.replace(/\s+/g, '_')}_${new Date().getTime()}.csv`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      URL.revokeObjectURL(element.href);
+
       toast({
         title: "Success",
         description: `${reportType} exported as ${format.toUpperCase()} successfully.`,
@@ -275,10 +323,167 @@ export function Reports() {
   const handleGenerateDocument = async (docType: string) => {
     setIsExporting(true);
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const currentDate = new Date();
+      const formattedDate = currentDate.toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+      const printedBy = "Administrator"; // Could be dynamic based on current user
+
+      let contentDetails = "";
+      let additionalContent = "";
+
+      switch (docType) {
+        case "Sales Receipt":
+          contentDetails = "Contains sales transaction records, customer details, itemized products, prices, and payment method information.";
+          break;
+        case "Invoice":
+          contentDetails = "Contains billing information, line items, pricing details, payment terms, and invoice reference numbers.";
+          break;
+        case "Inventory Summary":
+          contentDetails = "Contains stock levels, product codes, quantities on hand, reorder points, and inventory valuation summaries.";
+          break;
+        case "Performance Report":
+          contentDetails = "Contains operational metrics, performance indicators, trend analysis, and comparative data for decision-making.";
+          break;
+        case "Monthly Report":
+          contentDetails = "Contains consolidated monthly sales data, inventory status, financial summaries, and performance metrics.";
+          // Add sales data from mockSalesReports (monthly entry is index 2)
+          const monthlySales = mockSalesReports[2];
+          const monthlyInventory = mockInventoryReports.slice(0, 5); // Sample inventory items
+
+          additionalContent = `
+================================================================================
+MONTHLY SALES SUMMARY (${monthlySales.period})
+================================================================================
+
+Total Revenue: ₱${monthlySales.totalRevenue.toLocaleString()}
+Total Transactions: ${monthlySales.totalTransactions}
+Average Transaction Value: ₱${monthlySales.averageTransaction.toFixed(2)}
+Top Selling Product: ${monthlySales.topProduct}
+Top Product Revenue: ₱${monthlySales.topProductSales.toLocaleString()}
+
+================================================================================
+INVENTORY STATUS SNAPSHOT
+================================================================================
+
+${monthlyInventory.map((item, idx) => `
+${idx + 1}. ${item.productName} (${item.sku})
+   Current Stock: ${item.currentStock} units
+   Reorder Level: ${item.reorderLevel} units
+   Status: ${item.status.toUpperCase()}
+   Inventory Value: ₱${item.value.toLocaleString()}
+   Expiry Date: ${item.expiryDate}
+`).join('')}
+
+================================================================================
+MONTHLY PERFORMANCE SUMMARY
+================================================================================
+
+✓ Total Inventory Value: ₱${monthlyInventory.reduce((sum, item) => sum + item.value, 0).toLocaleString()}
+✓ Products with Low Stock: ${monthlyInventory.filter(item => item.status === 'low-stock').length}
+✓ Products Expiring Soon: ${monthlyInventory.filter(item => item.status === 'expiring').length}
+✓ Critical Review Items: ${monthlyInventory.filter(item => item.currentStock <= item.reorderLevel).length}
+`;
+          break;
+        default:
+          contentDetails = "Contains relevant document data and information.";
+      }
+
+      const documentContent = `================================================================================
+                           ${docType.toUpperCase()}
+================================================================================
+
+Date Generated: ${formattedDate}
+
+================================================================================
+OVERVIEW
+================================================================================
+
+This document contains comprehensive information regarding ${docType.toLowerCase()}.
+Generated for record-keeping and operational purposes.
+
+================================================================================
+WHAT WAS DONE
+================================================================================
+
+This ${docType.toLowerCase()} was generated to provide a complete and detailed record of
+the business activities, transactions, and data relevant to this reporting period.
+The document consolidates all necessary information for review, analysis, and archival purposes.
+
+================================================================================
+WHAT'S INCLUDED IN THIS DOCUMENT
+================================================================================
+
+${contentDetails}
+
+The document includes all relevant details necessary for:
+- Record keeping and compliance
+- Business analysis and reporting
+- Customer/stakeholder communication
+- Audit and verification purposes
+
+================================================================================
+DOCUMENT OUTLINE
+================================================================================
+
+1. HEADER INFORMATION
+   - Document Type: ${docType}
+   - Generated Date: ${formattedDate}
+   - Printed By: ${printedBy}
+
+2. OVERVIEW & SUMMARY
+   - Document purpose and scope
+   - Key information and highlights
+
+3. DETAILED CONTENT
+   - Complete transaction or operational records
+   - Itemized data and breakdowns
+   - Supporting documentation
+
+4. NOTES & REMARKS
+   - Additional notes and observations
+   - Special instructions or remarks
+   - Next steps or follow-up actions
+
+5. FOOTER INFORMATION
+   - Document reference number
+   - Approval status
+   - Contact information
+
+${additionalContent}
+
+================================================================================
+DOCUMENT FOOTER
+================================================================================
+
+Generated by: ${printedBy}
+Date & Time: ${formattedDate}
+Document Type: ${docType}
+Status: Official Record
+
+For questions or concerns regarding this document, please contact the
+appropriate department or management personnel.
+
+This is an official document and should be retained for record-keeping purposes.
+
+================================================================================
+                              END OF DOCUMENT
+================================================================================`;
+
+      const element = document.createElement('a');
+      const file = new Blob([documentContent], { type: 'text/plain' });
+      element.href = URL.createObjectURL(file);
+      element.download = `${docType.replace(/\s+/g, '_')}_${currentDate.getTime()}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+      URL.revokeObjectURL(element.href);
+
       toast({
         title: "Success",
-        description: `${docType} generated and ready for printing.`,
+        description: `${docType} generated and downloaded successfully.`,
       });
     } catch (error) {
       toast({
@@ -305,7 +510,7 @@ export function Reports() {
   };
 
   return (
-    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-hide">
+    <div className="flex-1 px-4 md:px-6 lg:px-7 py-4 md:py-6 overflow-y-auto scrollbar-visible">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <div className="mb-6">
@@ -316,12 +521,11 @@ export function Reports() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex flex-wrap gap-2 mb-6 border-b border-border pb-4 overflow-x-auto scrollbar-hide">
+        <div className="flex flex-wrap gap-2 mb-6 border-b border-border pb-4 overflow-x-auto scrollbar-visible">
           {[
             { id: "sales", label: "Sales Reports", icon: "📊" },
             { id: "inventory", label: "Inventory", icon: "📦" },
             { id: "customer", label: "Customer", icon: "👥" },
-            { id: "supplier", label: "Supplier", icon: "🏭" },
             { id: "performance", label: "Performance", icon: "📈" },
             { id: "profit", label: "Profit", icon: "💰" },
           ].map((tab) => (
@@ -435,7 +639,7 @@ export function Reports() {
                 Current stock levels, product details, and expiry dates
               </p>
 
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -528,7 +732,7 @@ export function Reports() {
                 Customer transaction details and purchase patterns
               </p>
 
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -594,82 +798,6 @@ export function Reports() {
           </div>
         )}
 
-        {/* Supplier Reports */}
-        {activeTab === "supplier" && (
-          <div className="space-y-6">
-            <Card className="p-6 overflow-hidden">
-              <h2 className="text-2xl font-bold text-navy mb-4">
-                Supplier-wise Inventory
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Inventory sourced from each supplier
-              </p>
-
-              <div className="overflow-x-auto scrollbar-hide">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b border-border bg-off-white">
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
-                        Supplier ID
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
-                        Supplier Name
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-navy">
-                        Products
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-navy">
-                        Inventory Value
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
-                        Last Restock
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-navy">
-                        Reorder Due
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {mockSupplierReports.map((supplier, idx) => (
-                      <tr key={idx} className="border-b border-border hover:bg-off-white">
-                        <td className="py-3 px-4 font-mono text-gray-700">
-                          {supplier.supplierId}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700 font-medium">
-                          {supplier.supplierName}
-                        </td>
-                        <td className="py-3 px-4 text-right text-gray-700 font-semibold">
-                          {supplier.productsSupplied}
-                        </td>
-                        <td className="py-3 px-4 text-right text-gray-700 font-semibold">
-                          ₱{supplier.totalInventoryValue.toLocaleString()}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {supplier.lastRestock}
-                        </td>
-                        <td className="py-3 px-4 text-gray-700">
-                          {supplier.reorderDue}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <div className="mt-6 flex gap-2">
-                <Button
-                  onClick={() =>
-                    handleExport("excel", "Supplier Report")
-                  }
-                  disabled={isExporting}
-                  className="bg-accent hover:bg-accent-dark text-white"
-                >
-                  📥 Export to Excel
-                </Button>
-              </div>
-            </Card>
-          </div>
-        )}
 
         {/* Performance Metrics */}
         {activeTab === "performance" && (
@@ -747,7 +875,7 @@ export function Reports() {
                 Profit margins and total profit per product
               </p>
 
-              <div className="overflow-x-auto scrollbar-hide">
+              <div className="overflow-x-auto scrollbar-visible">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b border-border bg-off-white">
@@ -879,6 +1007,17 @@ export function Reports() {
               <div className="text-left w-full">
                 <div className="font-semibold text-navy">📊 Performance Report</div>
                 <div className="text-xs text-gray-600">Generate performance summary documents</div>
+              </div>
+            </Button>
+            <Button
+              onClick={() => handleGenerateDocument("Monthly Report")}
+              disabled={isExporting}
+              variant="outline"
+              className="h-auto py-4"
+            >
+              <div className="text-left w-full">
+                <div className="font-semibold text-navy">📅 Monthly Report</div>
+                <div className="text-xs text-gray-600">Generate monthly sales and inventory summary</div>
               </div>
             </Button>
           </div>
