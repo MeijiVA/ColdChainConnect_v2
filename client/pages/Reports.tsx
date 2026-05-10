@@ -156,28 +156,12 @@ const mockCustomerReports: CustomerReport[] = [
 
 const mockSupplierReports: SupplierReport[] = [
   {
-    supplierId: "SUPP-001",
-    supplierName: "Quality Meats Co.",
-    productsSupplied: 8,
-    totalInventoryValue: 24500,
+    supplierId: "Frabelle Food Corp",
+    supplierName: "Frabelle Food Corp",
+    productsSupplied: 25,
+    totalInventoryValue: 74900,
     lastRestock: "2024-01-10",
     reorderDue: "2024-01-20",
-  },
-  {
-    supplierId: "SUPP-002",
-    supplierName: "Seafood Wholesale",
-    productsSupplied: 5,
-    totalInventoryValue: 18300,
-    lastRestock: "2024-01-12",
-    reorderDue: "2024-01-22",
-  },
-  {
-    supplierId: "SUPP-003",
-    supplierName: "Frozen Foods Ltd",
-    productsSupplied: 12,
-    totalInventoryValue: 32100,
-    lastRestock: "2024-01-08",
-    reorderDue: "2024-01-18",
   },
 ];
 
