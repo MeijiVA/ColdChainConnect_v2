@@ -502,6 +502,8 @@ export function Inventory() {
           <button
             onClick={() => {
               setNewBatchName("");
+              setIsCreatingBatch(true);
+              setBatchItems([]);
               setIsBatchModalOpen(true);
             }}
             className="px-4 py-2 bg-green text-white rounded-lg font-semibold text-sm hover:opacity-90 transition-opacity w-fit"
