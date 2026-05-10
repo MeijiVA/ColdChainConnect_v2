@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 
 // REQ-INV-001: Product interface with all required fields
 interface InventoryProduct {
@@ -1495,30 +1495,6 @@ function QRModal({
   onClose: () => void;
 }) {
   const qrCodeId = `QR-${product.sku}-${product.id}`;
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const [cameraActive, setCameraActive] = useState(false);
-
-  const openCamera = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
-      });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        setCameraActive(true);
-      }
-    } catch (err) {
-      alert("Unable to access camera: " + (err as Error).message);
-    }
-  };
-
-  const closeCamera = () => {
-    if (videoRef.current && videoRef.current.srcObject) {
-      const tracks = (videoRef.current.srcObject as MediaStream).getTracks();
-      tracks.forEach((track) => track.stop());
-      setCameraActive(false);
-    }
-  };
 
   const handlePrint = () => {
     const printWindow = window.open("", "", "width=300,height=400");
@@ -1657,35 +1633,6 @@ function QRModal({
               ₱{product.unitPrice.toLocaleString("en-PH", { minimumFractionDigits: 2 })}
             </span>
           </div>
-        </div>
-
-        {/* Camera Section */}
-        <div className="space-y-2 mb-6 border-t border-border pt-4">
-          <p className="text-sm font-semibold text-navy mb-2">Scan QR Code</p>
-          {!cameraActive ? (
-            <button
-              onClick={openCamera}
-              className="w-full px-4 py-3 bg-accent-2 text-white rounded-lg font-semibold hover:opacity-90 flex items-center justify-center gap-2"
-            >
-              📱 Open Camera
-            </button>
-          ) : (
-            <>
-              <video
-                ref={videoRef}
-                autoPlay
-                playsInline
-                className="w-full rounded-lg bg-black"
-                style={{ height: "250px" }}
-              />
-              <button
-                onClick={closeCamera}
-                className="w-full px-4 py-2 bg-red text-white rounded-lg font-semibold hover:opacity-90"
-              >
-                Close Camera
-              </button>
-            </>
-          )}
         </div>
 
         <div className="space-y-2">
