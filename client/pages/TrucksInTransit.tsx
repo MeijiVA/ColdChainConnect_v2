@@ -1,4 +1,5 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
+import QrScanner from "qr-scanner";
 // QR Code scanning will use browser's camera API and manual entry
 
 // Truck in transit interface
@@ -702,6 +703,53 @@ function QRScannerModal({
   availableQRs: string[];
 }) {
   const [manualQR, setManualQR] = useState("");
+  const [detectedQR, setDetectedQR] = useState<string | null>(null);
+
+  // Scan video frames for QR codes with qr-scanner (more robust)
+  useEffect(() => {
+    if (!cameraActive || !videoRef.current) return;
+
+    let scanner: QrScanner | null = null;
+
+    const initScanner = async () => {
+      try {
+        scanner = new QrScanner(
+          videoRef.current!,
+          (result) => {
+            if (result && availableQRs.includes(result.data)) {
+              setDetectedQR(result.data);
+            }
+          },
+          {
+            onDecodeError: () => {}, // Suppress error logs
+            preferredCamera: "environment",
+            highlightCodeOutline: false,
+            maxScans: 1,
+          }
+        );
+
+        await scanner.start();
+      } catch (err) {
+        console.error("Scanner init error:", err);
+      }
+    };
+
+    initScanner();
+
+    return () => {
+      if (scanner) {
+        scanner.stop();
+      }
+    };
+  }, [cameraActive, availableQRs]);
+
+  const handleDetectedQRScan = () => {
+    if (detectedQR && availableQRs.includes(detectedQR)) {
+      onScan(detectedQR);
+      setDetectedQR(null);
+      setManualQR("");
+    }
+  };
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -738,6 +786,14 @@ function QRScannerModal({
                   muted
                   className="w-full h-full object-cover"
                 />
+                {detectedQR && (
+                  <div className="absolute inset-0 border-4 border-green flex items-center justify-center">
+                    <div className="text-white text-center">
+                      <div className="text-lg font-bold">✓ QR Detected</div>
+                      <div className="text-sm">{detectedQR}</div>
+                    </div>
+                  </div>
+                )}
               </div>
               <button
                 onClick={closeCamera}
@@ -748,6 +804,20 @@ function QRScannerModal({
             </>
           )}
         </div>
+
+        {/* Detected QR Action */}
+        {detectedQR && (
+          <div className="bg-green/10 border border-green/30 rounded-lg p-3 space-y-2">
+            <p className="text-xs text-muted">QR Code Detected:</p>
+            <p className="font-semibold text-green text-sm font-mono">{detectedQR}</p>
+            <button
+              onClick={handleDetectedQRScan}
+              className="w-full px-4 py-2 bg-green text-white rounded-lg font-semibold hover:opacity-90 text-sm"
+            >
+              ✓ Confirm & Submit
+            </button>
+          </div>
+        )}
 
         {/* Manual Entry */}
         <div className="space-y-2 pt-4 border-t border-border">
